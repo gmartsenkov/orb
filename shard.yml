@@ -4,6 +4,20 @@ version: 0.1.0
 authors:
   - Georgi Martsenkov <g.martsenkov@gmail.com>
 
+dependencies:
+  db:
+    github: crystal-lang/crystal-db
+
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+    version: ~> 0.13.0
+  crystal-kcov:
+    github: vici37/crystal-kcov
+  spectator:
+    gitlab: arctic-fox/spectator
+    version: ~> 0.10.3
+
 crystal: 1.2.2
 
 license: MIT

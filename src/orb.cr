@@ -1,6 +1,5 @@
-# TODO: Write documentation for `Orb`
+require "./relation"
+
 module Orb
   VERSION = "0.1.0"
-
-  # TODO: Put your code here
 end
