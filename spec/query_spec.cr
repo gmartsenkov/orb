@@ -12,7 +12,7 @@ macro result(query, values)
   Orb::Query::Result.new(query: {{query}}, values: {{values}} of Orb::TYPES)
 end
 
-NOW = Time.utc
+NOW   = Time.utc
 TESTS = [
   QueryTest.new(
     query: Orb::Query.new.where(:active, 1),
