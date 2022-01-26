@@ -12,6 +12,7 @@ macro result(query, values)
   Orb::Query::Result.new(query: {{query}}, values: {{values}} of Orb::TYPES)
 end
 
+NOW = Time.utc
 TESTS = [
   QueryTest.new(
     query: Orb::Query.new.where(:active, 1),
@@ -20,6 +21,10 @@ TESTS = [
   QueryTest.new(
     query: Orb::Query.new.where(:active, 1).where(status: "closed", name: "Jon"),
     result: result("active = $1 AND status = $2 AND name = $3", [1, "closed", "Jon"])
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.where(:created_at, :>=, NOW).where(:name, :like, "Jon"),
+    result: result("created_at >= $1 AND name LIKE $2", [NOW, "Jon"])
   ),
 ]
 

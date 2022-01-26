@@ -19,6 +19,11 @@ module Orb
 
     @where = Array(Where).new
 
+    def where(column, operator, value)
+      @where.push(Where.new(column.to_s, operator.to_s.upcase, value))
+      self
+    end
+
     def where(column, value)
       @where.push(Where.new(column.to_s, "=", value))
       self
