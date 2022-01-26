@@ -26,6 +26,10 @@ TESTS = [
     query: Orb::Query.new.where(:created_at, :>=, NOW).where(:name, :like, "Jon"),
     result: result("created_at >= $1 AND name LIKE $2", [NOW, "Jon"])
   ),
+  QueryTest.new(
+    query: Orb::Query.new.where(:active, 1).limit(5).offset(3),
+    result: result("active = $1 LIMIT $2 OFFSET $3", [1, 5, 3])
+  ),
 ]
 
 Spectator.describe Orb::Query do
