@@ -17,9 +17,21 @@ module Orb
       end
     end
 
+    @select = Array(String).new
+    @from : String?
     @where = Array(Where).new
     @limit : Int32?
     @offset : Int32?
+
+    def select(*columns)
+      @select = columns.to_a.map(&.to_s)
+      self
+    end
+
+    def from(table)
+      @from = table.to_s
+      self
+    end
 
     def limit(value)
       @limit = value
@@ -48,8 +60,22 @@ module Orb
 
     def to_result
       values = Array(Orb::TYPES).new
-      query = @where.map_with_index { |clause, i| clause.to_sql(i + 1) }.join(" AND ")
-      values.concat(@where.map(&.value))
+      query = String.new
+
+      if @select.any?
+        cols = @select.join(", ")
+        query += "SELECT #{cols} "
+      end
+
+      if @from
+        query += "FROM #{@from} "
+      end
+
+      if @where.any?
+        query += "WHERE "
+        query += @where.map_with_index { |clause, i| clause.to_sql(i + 1) }.join(" AND ")
+        values.concat(@where.map(&.value))
+      end
 
       if @limit
         query += " LIMIT $#{values.size + 1}"
@@ -61,7 +87,7 @@ module Orb
         values.push(@offset)
       end
 
-      Result.new(query: query, values: values)
+      Result.new(query: query.strip, values: values)
     end
   end
 end
