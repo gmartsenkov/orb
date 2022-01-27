@@ -17,10 +17,11 @@ module Orb
       Cross
     end
 
-    alias Clauses = Select | Distinct | Join |From | GroupBy | Where | Limit | Offset
+    alias Clauses = Select | Distinct | Join |From | GroupBy | Where | Limit | Offset | Insert
     @clauses = Array(Clauses).new
 
     CLAUSE_PRIORITY = {
+      Insert => 1,
       Select => 1,
       Distinct => 1,
       From => 2,
@@ -30,6 +31,11 @@ module Orb
       Limit => 6,
       Offset => 7
     }
+
+    def insert(table, columns, values)
+      @clauses.push(Insert.new(table, columns.map(&.to_s), values))
+      self
+    end
 
     def join(table, columns)
       @clauses.push(Join.new(table, columns, Joins::Inner))

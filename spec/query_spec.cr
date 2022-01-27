@@ -98,6 +98,10 @@ TESTS = [
     query: Orb::Query.new.select(:id, :name).from("users").cross_join(:posts, {:id, :user_id}),
     result: result("SELECT id, name FROM users CROSS JOIN posts ON id = user_id")
   ),
+  QueryTest.new(
+    query: Orb::Query.new.insert(:users, [:name, :email, :age], ["Jon", "jon@snow", 15] of Orb::TYPES),
+    result: result("INSERT INTO users(name, email, age) VALUES ($1, $2, $3)", ["Jon", "jon@snow", 15])
+  ),
 ]
 
 Spectator.describe Orb::Query do
