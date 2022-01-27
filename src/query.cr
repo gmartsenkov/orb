@@ -18,10 +18,16 @@ module Orb
     end
 
     @select = Array(String).new
+    @distinct = Array(String).new
     @from : String?
     @where = Array(Where).new
     @limit : Int32?
     @offset : Int32?
+
+    def distinct(*columns)
+      @distinct = columns.to_a.map(&.to_s)
+      self
+    end
 
     def select(*columns)
       @select = columns.to_a.map(&.to_s)
@@ -62,9 +68,14 @@ module Orb
       values = Array(Orb::TYPES).new
       query = String.new
 
-      if @select.any?
+      if @select.any? && @distinct.none?
         cols = @select.join(", ")
         query += "SELECT #{cols} "
+      end
+
+      if @distinct.any?
+        cols = @distinct.join(", ")
+        query += "SELECT DISTINCT #{cols} "
       end
 
       if @from
