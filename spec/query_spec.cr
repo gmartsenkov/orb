@@ -58,6 +58,22 @@ TESTS = [
     query: Orb::Query.new.where(:active, 1).group_by(:active, :name).limit(5).offset(3),
     result: result("WHERE active = $1 GROUP BY active, name LIMIT $2 OFFSET $3", [1, 5, 3])
   ),
+  QueryTest.new(
+    query: Orb::Query.new.where(:active, 1).or_where(:active, 2),
+    result: result("WHERE active = $1 OR active = $2", [1, 2])
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.where(:active, 1).or_where(active: 2, name: "Jon"),
+    result: result("WHERE active = $1 OR active = $2 AND name = $3", [1, 2, "Jon"])
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.where(:active, 1).or_where(Orb::Query::Fragment.generate("(age > ? OR age < ?) AND (active = ?)", [18, 99, true])),
+    result: result("WHERE active = $1 OR (age > $2 OR age < $3) AND (active = $4)", [1, 18, 99, true])
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.where(:active, 1).or_where(:age, :>=, 5).where(name: "BOB"),
+    result: result("WHERE active = $1 OR age >= $2 AND name = $3", [1, 5, "BOB"])
+  ),
 ]
 
 Spectator.describe Orb::Query do

@@ -1,3 +1,4 @@
+require "../query"
 require "../orb"
 require "./fragment"
 
@@ -7,22 +8,34 @@ module Orb
       property column : String
       property operator : String
       property value : Orb::TYPES
+      property logical_operator : LogicalOperator
       property fragment : Fragment?
 
       getter priority = 3
 
-      def initialize(@fragment)
+      def initialize(@fragment, @logical_operator = LogicalOperator::And)
         @column = ""
         @operator = ""
       end
 
-      def initialize(@column, @operator, @value)
+      def initialize(@column, @operator, @value, @logical_operator = LogicalOperator::And)
       end
 
       def to_sql(position)
         return @fragment.not_nil!.to_sql(position) if @fragment
 
         "#{@column} #{@operator} $#{position}"
+      end
+
+      def logical_operator : String
+        case @logical_operator
+        when LogicalOperator::And
+          "AND"
+        when LogicalOperator::Or
+          "OR"
+        else
+          raise "Unknown logical operator"
+        end
       end
 
       def values

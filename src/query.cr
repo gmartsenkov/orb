@@ -4,6 +4,11 @@ require "./query/*"
 
 module Orb
   class Query
+    enum LogicalOperator
+      And
+      Or
+    end
+
     alias Clauses = Select | Distinct | From | GroupBy | Where | Limit | Offset
     @clauses = Array(Clauses).new
 
@@ -37,25 +42,32 @@ module Orb
       self
     end
 
-    def where(fragment : Fragment)
-      @clauses.push(Where.new(fragment))
-      self
-    end
+    {% for pair, _ in [{"where", "LogicalOperator::And"}, {"or_where", "LogicalOperator::Or"}] %}
+      def {{pair[0].id}}(fragment : Fragment)
+        @clauses.push(Where.new(fragment, {{pair[1].id}}))
+        self
+      end
 
-    def where(column, operator, value)
-      @clauses.push(Where.new(column.to_s, operator.to_s.upcase, value))
-      self
-    end
+      def {{pair[0].id}}(column, operator, value)
+        @clauses.push(Where.new(column.to_s, operator.to_s.upcase, value, {{pair[1].id}}))
+        self
+      end
 
-    def where(column, value)
-      @clauses.push(Where.new(column.to_s, "=", value))
-      self
-    end
+      def {{pair[0].id}}(column, value)
+        @clauses.push(Where.new(column.to_s, "=", value, {{pair[1].id}}))
+        self
+      end
 
-    def where(**conditions)
-      @clauses.concat(conditions.map { |key, value| Where.new(key.to_s, "=", value) })
-      self
-    end
+      def {{pair[0].id}}(**conditions)
+        clauses = conditions.to_a.map_with_index do |condition, i|
+          operator = i.zero? ? {{pair[1].id}} : LogicalOperator::And
+          Where.new(condition[0].to_s, "=", condition[1], operator)
+        end
+
+        @clauses.concat(clauses)
+        self
+      end
+    {% end %}
 
     def to_result
       values = Array(Orb::TYPES).new
@@ -70,7 +82,7 @@ module Orb
         if clause == first_where_clause
           "WHERE " + clause.to_sql(position)
         elsif clause.is_a?(Where)
-          "AND " + clause.to_sql(position)
+          clause.logical_operator + " " + clause.to_sql(position)
         else
           clause.to_sql(position)
         end
