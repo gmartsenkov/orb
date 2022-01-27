@@ -17,19 +17,19 @@ module Orb
       Cross
     end
 
-    alias Clauses = Select | Distinct | Join |From | GroupBy | Where | Limit | Offset | Insert
+    alias Clauses = Select | Distinct | Join | From | GroupBy | Where | Limit | Offset | Insert
     @clauses = Array(Clauses).new
 
     CLAUSE_PRIORITY = {
-      Insert => 1,
-      Select => 1,
+      Insert   => 1,
+      Select   => 1,
       Distinct => 1,
-      From => 2,
-      Join => 3,
-      Where => 4,
-      GroupBy => 5,
-      Limit => 6,
-      Offset => 7
+      From     => 2,
+      Join     => 3,
+      Where    => 4,
+      GroupBy  => 5,
+      Limit    => 6,
+      Offset   => 7,
     }
 
     def insert(table, columns, values)
