@@ -35,6 +35,10 @@ TESTS = [
     result: result("SELECT DISTINCT age, name, birthday FROM users WHERE age > $1", [15])
   ),
   QueryTest.new(
+    query: Orb::Query.new.where(Orb::Query::Fragment.generate("(age > ? OR age < ?) AND (active = ?)", [18, 99, true])).where(:name, :like, "Jon").from("users"),
+    result: result("FROM users WHERE (age > $1 OR age < $2) AND (active = $3) AND name LIKE $4", [18, 99, true, "Jon"])
+  ),
+  QueryTest.new(
     query: Orb::Query.new.where(:active, 1),
     result: result("WHERE active = $1", [1])
   ),

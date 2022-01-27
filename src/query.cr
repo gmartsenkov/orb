@@ -15,12 +15,16 @@ module Orb
       def to_sql(position)
         "#{@column} #{@operator} $#{position}"
       end
+
+      def values
+        [value]
+      end
     end
 
     @select = Array(String).new
     @distinct = Array(String).new
     @from : String?
-    @where = Array(Where).new
+    @where = Array(Where | Fragment).new
     @limit : Int32?
     @offset : Int32?
 
@@ -46,6 +50,11 @@ module Orb
 
     def offset(value)
       @offset = value
+      self
+    end
+
+    def where(fragment : Fragment)
+      @where.push(fragment)
       self
     end
 
@@ -84,8 +93,12 @@ module Orb
 
       if @where.any?
         query += "WHERE "
-        query += @where.map_with_index { |clause, i| clause.to_sql(i + 1) }.join(" AND ")
-        values.concat(@where.map(&.value))
+        query += @where.map_with_index do |clause, i|
+          position = i.zero? ? 1 : @where[0..i].flat_map(&.values).size
+          clause.to_sql(position)
+        end.join(" AND ")
+
+        values.concat(@where.flat_map(&.values))
       end
 
       if @limit
