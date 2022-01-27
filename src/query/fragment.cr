@@ -2,7 +2,7 @@ require "../orb"
 
 module Orb
   class Query
-    class Fragment
+    struct Fragment
       property query : String
       property values : Array(Orb::TYPES)
 

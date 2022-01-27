@@ -4,123 +4,77 @@ require "./query/*"
 
 module Orb
   class Query
-    struct Where
-      property column : String
-      property operator : String
-      property value : Orb::TYPES
-
-      def initialize(@column, @operator, @value)
-      end
-
-      def to_sql(position)
-        "#{@column} #{@operator} $#{position}"
-      end
-
-      def values
-        [value]
-      end
-    end
-
-    @select = Array(String).new
-    @distinct = Array(String).new
-    @group_by = Array(String).new
-    @from : String?
-    @where = Array(Where | Fragment).new
-    @limit : Int32?
-    @offset : Int32?
+    alias Clauses = Select | Distinct | From | GroupBy | Where | Limit | Offset
+    @clauses = Array(Clauses).new
 
     def distinct(*columns)
-      @distinct = columns.to_a.map(&.to_s)
+      @clauses.push(Distinct.new(columns.to_a.map(&.to_s)))
       self
     end
 
     def select(*columns)
-      @select = columns.to_a.map(&.to_s)
+      @clauses.push(Select.new(columns.to_a.map(&.to_s)))
       self
     end
 
     def group_by(*columns)
-      @group_by = columns.to_a.map(&.to_s)
+      @clauses.push(GroupBy.new(columns.to_a.map(&.to_s)))
       self
     end
 
     def from(table)
-      @from = table.to_s
+      @clauses.push(From.new(table.to_s))
       self
     end
 
     def limit(value)
-      @limit = value
+      @clauses.push(Limit.new(value))
       self
     end
 
     def offset(value)
-      @offset = value
+      @clauses.push(Offset.new(value))
       self
     end
 
     def where(fragment : Fragment)
-      @where.push(fragment)
+      @clauses.push(Where.new(fragment))
       self
     end
 
     def where(column, operator, value)
-      @where.push(Where.new(column.to_s, operator.to_s.upcase, value))
+      @clauses.push(Where.new(column.to_s, operator.to_s.upcase, value))
       self
     end
 
     def where(column, value)
-      @where.push(Where.new(column.to_s, "=", value))
+      @clauses.push(Where.new(column.to_s, "=", value))
       self
     end
 
     def where(**conditions)
-      @where.concat(conditions.map { |key, value| Where.new(key.to_s, "=", value) })
+      @clauses.concat(conditions.map { |key, value| Where.new(key.to_s, "=", value) })
       self
     end
 
     def to_result
       values = Array(Orb::TYPES).new
       query = String.new
+      clauses = @clauses.sort_by(&.priority)
+      values = @clauses.flat_map(&.values)
+      first_where_clause = @clauses.find { |clause| clause.is_a?(Where) }
 
-      if @select.any? && @distinct.none?
-        cols = @select.join(", ")
-        query += "SELECT #{cols} "
-      end
+      query = clauses.map_with_index do |clause, i|
+        position = clauses[0...i].flat_map(&.values).size + 1
 
-      if @distinct.any?
-        cols = @distinct.join(", ")
-        query += "SELECT DISTINCT #{cols} "
-      end
-
-      if @from
-        query += "FROM #{@from} "
-      end
-
-      if @where.any?
-        query += "WHERE "
-        query += @where.map_with_index do |clause, i|
-          position = i.zero? ? 1 : @where[0..i].flat_map(&.values).size
+        if clause == first_where_clause
+          "WHERE " + clause.to_sql(position)
+        elsif clause.is_a?(Where)
+          "AND " + clause.to_sql(position)
+        else
           clause.to_sql(position)
-        end.join(" AND ")
-
-        values.concat(@where.flat_map(&.values))
-      end
-
-      if @group_by.any?
-        cols = @group_by.join(", ")
-        query += " GROUP BY #{cols}"
-      end
-
-      if @limit
-        query += " LIMIT $#{values.size + 1}"
-        values.push(@limit)
-      end
-
-      if @offset
-        query += " OFFSET $#{values.size + 1}"
-        values.push(@offset)
-      end
+        end
+      end.join(" ")
 
       Result.new(query: query.strip, values: values)
     end
