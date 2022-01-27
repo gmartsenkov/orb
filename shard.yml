@@ -16,7 +16,7 @@ development_dependencies:
     github: vici37/crystal-kcov
   spectator:
     gitlab: arctic-fox/spectator
-    version: ~> 0.10.3
+    version: 0.10.3
 
 crystal: 1.2.2
 
