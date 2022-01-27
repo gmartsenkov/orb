@@ -54,6 +54,10 @@ TESTS = [
     query: Orb::Query.new.where(:active, 1).limit(5).offset(3),
     result: result("WHERE active = $1 LIMIT $2 OFFSET $3", [1, 5, 3])
   ),
+  QueryTest.new(
+    query: Orb::Query.new.where(:active, 1).group_by(:active, :name).limit(5).offset(3),
+    result: result("WHERE active = $1 GROUP BY active, name LIMIT $2 OFFSET $3", [1, 5, 3])
+  ),
 ]
 
 Spectator.describe Orb::Query do

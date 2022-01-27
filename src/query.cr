@@ -23,6 +23,7 @@ module Orb
 
     @select = Array(String).new
     @distinct = Array(String).new
+    @group_by = Array(String).new
     @from : String?
     @where = Array(Where | Fragment).new
     @limit : Int32?
@@ -35,6 +36,11 @@ module Orb
 
     def select(*columns)
       @select = columns.to_a.map(&.to_s)
+      self
+    end
+
+    def group_by(*columns)
+      @group_by = columns.to_a.map(&.to_s)
       self
     end
 
@@ -99,6 +105,11 @@ module Orb
         end.join(" AND ")
 
         values.concat(@where.flat_map(&.values))
+      end
+
+      if @group_by.any?
+        cols = @group_by.join(", ")
+        query += " GROUP BY #{cols}"
       end
 
       if @limit
