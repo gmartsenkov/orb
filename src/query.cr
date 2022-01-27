@@ -9,8 +9,57 @@ module Orb
       Or
     end
 
-    alias Clauses = Select | Distinct | From | GroupBy | Where | Limit | Offset
+    enum Joins
+      Left
+      Right
+      Inner
+      Full
+      Cross
+    end
+
+    alias Clauses = Select | Distinct | Join |From | GroupBy | Where | Limit | Offset
     @clauses = Array(Clauses).new
+
+    CLAUSE_PRIORITY = {
+      Select => 1,
+      Distinct => 1,
+      From => 2,
+      Join => 3,
+      Where => 4,
+      GroupBy => 5,
+      Limit => 6,
+      Offset => 7
+    }
+
+    def join(table, columns)
+      @clauses.push(Join.new(table, columns, Joins::Inner))
+      self
+    end
+
+    def inner_join(table, columns)
+      @clauses.push(Join.new(table, columns, Joins::Inner))
+      self
+    end
+
+    def right_join(table, columns)
+      @clauses.push(Join.new(table, columns, Joins::Right))
+      self
+    end
+
+    def left_join(table, columns)
+      @clauses.push(Join.new(table, columns, Joins::Left))
+      self
+    end
+
+    def full_join(table, columns)
+      @clauses.push(Join.new(table, columns, Joins::Full))
+      self
+    end
+
+    def cross_join(table, columns)
+      @clauses.push(Join.new(table, columns, Joins::Cross))
+      self
+    end
 
     def distinct(*columns)
       @clauses.push(Distinct.new(columns.to_a.map(&.to_s)))
@@ -72,7 +121,7 @@ module Orb
     def to_result
       values = Array(Orb::TYPES).new
       query = String.new
-      clauses = @clauses.sort_by(&.priority)
+      clauses = @clauses.sort_by { |c| CLAUSE_PRIORITY[c.class] }
       values = @clauses.flat_map(&.values)
       first_where_clause = @clauses.find { |clause| clause.is_a?(Where) }
 

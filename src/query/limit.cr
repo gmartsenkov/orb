@@ -5,8 +5,6 @@ module Orb
     struct Limit
       property limit : Int32
 
-      getter priority = 5
-
       def initialize(@limit)
       end
 

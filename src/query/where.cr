@@ -11,8 +11,6 @@ module Orb
       property logical_operator : LogicalOperator
       property fragment : Fragment?
 
-      getter priority = 3
-
       def initialize(@fragment, @logical_operator = LogicalOperator::And)
         @column = ""
         @operator = ""

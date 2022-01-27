@@ -5,7 +5,6 @@ module Orb
     struct Select
       property columns : Array(String)
 
-      getter priority = 1
       getter values = [] of Orb::TYPES
 
       def initialize(@columns)

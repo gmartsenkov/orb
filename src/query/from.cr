@@ -1,11 +1,11 @@
 require "../orb"
+require "./*"
 
 module Orb
   class Query
     struct From
       property table : String
 
-      getter priority = 2
       getter values = [] of Orb::TYPES
 
       def initialize(@table)

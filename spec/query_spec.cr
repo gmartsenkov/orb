@@ -74,6 +74,30 @@ TESTS = [
     query: Orb::Query.new.where(:active, 1).or_where(:age, :>=, 5).where(name: "BOB"),
     result: result("WHERE active = $1 OR age >= $2 AND name = $3", [1, 5, "BOB"])
   ),
+  QueryTest.new(
+    query: Orb::Query.new.where(:active, 1).or_where(:age, :>=, 5).join(:posts, {:id, :user_id}),
+    result: result("INNER JOIN posts ON id = user_id WHERE active = $1 OR age >= $2", [1, 5])
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.where(:active, 1).or_where(:age, :>=, 5).inner_join(:posts, {:id, :user_id}),
+    result: result("INNER JOIN posts ON id = user_id WHERE active = $1 OR age >= $2", [1, 5])
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.select(:id, :name).from("users").left_join(:posts, {:id, :user_id}),
+    result: result("SELECT id, name FROM users LEFT JOIN posts ON id = user_id")
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.select(:id, :name).from("users").right_join(:posts, {:id, :user_id}),
+    result: result("SELECT id, name FROM users RIGHT JOIN posts ON id = user_id")
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.select(:id, :name).from("users").full_join(:posts, {:id, :user_id}),
+    result: result("SELECT id, name FROM users FULL JOIN posts ON id = user_id")
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.select(:id, :name).from("users").cross_join(:posts, {:id, :user_id}),
+    result: result("SELECT id, name FROM users CROSS JOIN posts ON id = user_id")
+  ),
 ]
 
 Spectator.describe Orb::Query do

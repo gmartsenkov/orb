@@ -5,8 +5,6 @@ module Orb
     struct Offset
       property offset : Int32
 
-      getter priority = 5
-
       def initialize(@offset)
       end
 
