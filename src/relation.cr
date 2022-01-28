@@ -1,8 +1,10 @@
 require "db"
+require "./orb"
 
 module Orb
   abstract class Relation
     include DB::Serializable
+
     @@column_names = Array(String).new
 
     macro table(name)
@@ -16,6 +18,13 @@ module Orb
     macro attribute(name, type)
       @@column_names.push({{name}}.to_s)
       property {{name.id}} : {{type}}
+    end
+
+    def to_h : Hash(String, Orb::TYPES)
+      hash = {{ @type.instance_vars.map(&.name).map { |field| [field.stringify, field.id] } }}.to_h
+      new = Hash(String, Orb::TYPES).new
+      hash.each { |k,v| k.is_a?(String) ? new.put(k.as(String), v) {} : nil }
+      new
     end
 
     def self.column_names
