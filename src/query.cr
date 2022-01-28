@@ -22,7 +22,7 @@ module Orb
 
     CLAUSE_PRIORITY = {
       Insert   => 1,
-      Update => 1,
+      Update   => 1,
       Select   => 1,
       Distinct => 1,
       From     => 2,
@@ -40,7 +40,7 @@ module Orb
 
     def update(table, values)
       update_values = Hash(String | Symbol, Orb::TYPES).new
-      values.to_a.each { |key, val| update_values.put(key, val) {} }
+      values.to_a.each { |key, val| update_values.put(key, val) { } }
       @clauses.push(Update.new(table, update_values))
       self
     end
