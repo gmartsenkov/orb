@@ -23,7 +23,7 @@ module Orb
     def to_h : Hash(String, Orb::TYPES)
       hash = {{ @type.instance_vars.map(&.name).map { |field| [field.stringify, field.id] } }}.to_h
       new = Hash(String, Orb::TYPES).new
-      hash.each { |k,v| k.is_a?(String) ? new.put(k.as(String), v) {} : nil }
+      hash.each { |k, v| k.is_a?(String) ? new.put(k.as(String), v) { } : nil }
       new
     end
 
