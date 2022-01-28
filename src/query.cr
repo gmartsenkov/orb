@@ -17,11 +17,12 @@ module Orb
       Cross
     end
 
-    alias Clauses = Select | Distinct | Join | From | GroupBy | Where | Limit | Offset | Insert
+    alias Clauses = Select | Distinct | Join | From | GroupBy | Where | Limit | Offset | Insert | Update
     @clauses = Array(Clauses).new
 
     CLAUSE_PRIORITY = {
       Insert   => 1,
+      Update => 1,
       Select   => 1,
       Distinct => 1,
       From     => 2,
@@ -31,6 +32,18 @@ module Orb
       Limit    => 6,
       Offset   => 7,
     }
+
+    def update(table, relation : Orb::Relation)
+      @clauses.push(Update.new(table, relation.to_h))
+      self
+    end
+
+    def update(table, values)
+      update_values = Hash(String | Symbol, Orb::TYPES).new
+      values.to_a.each { |key, val| update_values.put(key, val) {} }
+      @clauses.push(Update.new(table, update_values))
+      self
+    end
 
     def insert(table, columns, values)
       @clauses.push(Insert.new(table, columns.map(&.to_s), values))

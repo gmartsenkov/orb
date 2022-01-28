@@ -20,9 +20,9 @@ module Orb
       property {{name.id}} : {{type}}
     end
 
-    def to_h : Hash(String, Orb::TYPES)
+    def to_h : Hash(String | Symbol, Orb::TYPES)
       hash = {{ @type.instance_vars.map(&.name).map { |field| [field.stringify, field.id] } }}.to_h
-      new = Hash(String, Orb::TYPES).new
+      new = Hash(String | Symbol, Orb::TYPES).new
       hash.each { |k, v| k.is_a?(String) ? new.put(k.as(String), v) { } : nil }
       new
     end
