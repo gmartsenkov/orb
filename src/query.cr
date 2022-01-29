@@ -17,20 +17,21 @@ module Orb
       Cross
     end
 
-    alias Clauses = Select | Distinct | Join | From | GroupBy | Where | Limit | Offset | Insert | Update
+    alias Clauses = Select | Distinct | Join | From | GroupBy | Where | Limit | Offset | Insert | Update | MultiInsert
     @clauses = Array(Clauses).new
 
     CLAUSE_PRIORITY = {
-      Insert   => 1,
-      Update   => 1,
-      Select   => 1,
-      Distinct => 1,
-      From     => 2,
-      Join     => 3,
-      Where    => 4,
-      GroupBy  => 5,
-      Limit    => 6,
-      Offset   => 7,
+      MultiInsert => 1,
+      Insert      => 1,
+      Update      => 1,
+      Select      => 1,
+      Distinct    => 1,
+      From        => 2,
+      Join        => 3,
+      Where       => 4,
+      GroupBy     => 5,
+      Limit       => 6,
+      Offset      => 7,
     }
 
     def update(table, relation : Orb::Relation)
@@ -39,14 +40,19 @@ module Orb
     end
 
     def update(table, values)
-      update_values = Hash(String | Symbol, Orb::TYPES).new
-      values.to_a.each { |key, val| update_values.put(key, val) { } }
-      @clauses.push(Update.new(table, update_values))
+      @clauses.push(Update.new(table, transform_hash(values)))
       self
     end
 
-    def insert(table, columns, values)
-      @clauses.push(Insert.new(table, columns.map(&.to_s), values))
+    def multi_insert(table, values)
+      new_values = Array(Hash(String | Symbol, Orb::TYPES)).new
+      values.to_a.each { |row| new_values << transform_hash(row) }
+      @clauses.push(MultiInsert.new(table, new_values))
+      self
+    end
+
+    def insert(table, values)
+      @clauses.push(Insert.new(table, transform_hash(values)))
       self
     end
 
@@ -157,6 +163,12 @@ module Orb
       end.join(" ")
 
       Result.new(query: query.strip, values: values)
+    end
+
+    private def transform_hash(hash)
+      new_hash = Hash(String | Symbol, Orb::TYPES).new
+      hash.each { |key, val| new_hash.put(key, val) { } }
+      new_hash
     end
   end
 end

@@ -4,20 +4,22 @@ module Orb
   class Query
     struct Insert
       property table : String | Symbol
-      property columns : Array(String)
-      property values : Array(Orb::TYPES)
+      property fields : Hash(String | Symbol, Orb::TYPES)
 
-      def initialize(@table, @columns, @values)
+      def initialize(@table, @fields)
       end
 
       def to_sql(position)
-        columns = @columns.join(", ")
-        "INSERT INTO #{@table}(#{columns}) VALUES (#{values_string(position, @values.size)})"
+        "INSERT INTO #{@table}(#{@fields.keys.join(", ")}) VALUES (#{values_string(position)})"
       end
 
-      private def values_string(position, value_size)
-        (0...value_size)
-          .map { |i| "$#{i + position}" }
+      def values
+        @fields.values
+      end
+
+      private def values_string(position)
+        @fields.keys
+          .map_with_index { |_, i| "$#{i + position}" }
           .join(", ")
       end
     end

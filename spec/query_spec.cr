@@ -99,7 +99,7 @@ TESTS = [
     result: result("SELECT id, name FROM users CROSS JOIN posts ON id = user_id")
   ),
   QueryTest.new(
-    query: Orb::Query.new.insert(:users, [:name, :email, :age], ["Jon", "jon@snow", 15] of Orb::TYPES),
+    query: Orb::Query.new.insert(:users, {name: "Jon", email: "jon@snow", age: 15}),
     result: result("INSERT INTO users(name, email, age) VALUES ($1, $2, $3)", ["Jon", "jon@snow", 15])
   ),
   QueryTest.new(
@@ -113,6 +113,10 @@ TESTS = [
   QueryTest.new(
     query: Orb::Query.new.update(:users, Orb::ExampleRelation.new(1, "Jon", "jon@email", NOW)),
     result: result("UPDATE INTO users SET id = $1, name = $2, email = $3, created_at = $4", [1, "Jon", "jon@email", NOW])
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.multi_insert(:users, [{name: "Jon", age: 15}, {name: "Bob", age: 22}]),
+    result: result("INSERT INTO users(name, age) VALUES ($1, $2), ($3, $4)", ["Jon", 15, "Bob", 22])
   ),
 ]
 
