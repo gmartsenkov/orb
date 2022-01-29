@@ -2,7 +2,7 @@ require "../spec_helper"
 
 Spectator.describe "Postgres queries" do
   describe "select" do
-    let(now) { Time.local }
+    let(now) { Time.utc }
 
     before_each do
       Factory.build(Orb::ExampleRelation.new(id: 1, name: "Jon", email: "jon@snow", created_at: now))
