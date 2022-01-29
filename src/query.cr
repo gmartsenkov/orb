@@ -155,8 +155,6 @@ module Orb
     {% end %}
 
     def to_result
-      values = Array(Orb::TYPES).new
-      query = String.new
       clauses = @clauses.sort_by { |c| CLAUSE_PRIORITY[c.class] }
       values = @clauses.flat_map(&.values)
       first_where_clause = @clauses.find { |clause| clause.is_a?(Where) }
