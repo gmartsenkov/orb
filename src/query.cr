@@ -56,6 +56,11 @@ module Orb
       self
     end
 
+    def insert(relation : Orb::Relation)
+      @clauses.push(Insert.new(relation.class.table_name, relation.to_h))
+      self
+    end
+
     def join(table, columns)
       @clauses.push(Join.new(table, columns, Joins::Inner))
       self
@@ -93,6 +98,12 @@ module Orb
 
     def select(*columns)
       @clauses.push(Select.new(columns.to_a.map(&.to_s)))
+      self
+    end
+
+    def select(klass : Orb::Relation.class)
+      @clauses.push(Select.new(klass.column_names))
+      @clauses.push(From.new(klass.table_name))
       self
     end
 

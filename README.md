@@ -24,6 +24,8 @@ TODO: Write usage instructions here
 
 ## Development
 
+Create test database
+`psql -U postgres -f test_database.sql`
 TODO: Write development instructions here
 
 ## Contributing

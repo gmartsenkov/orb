@@ -31,6 +31,10 @@ TESTS = [
     result: result("SELECT age, name, birthday FROM users WHERE age > $1", [15])
   ),
   QueryTest.new(
+    query: Orb::Query.new.select(Orb::ExampleRelation),
+    result: result("SELECT id, name, email, created_at FROM users")
+  ),
+  QueryTest.new(
     query: Orb::Query.new.distinct(:age, :name, :birthday).from(:users).where(:age, :>, 15),
     result: result("SELECT DISTINCT age, name, birthday FROM users WHERE age > $1", [15])
   ),

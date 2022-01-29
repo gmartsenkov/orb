@@ -16,7 +16,11 @@ development_dependencies:
     github: vici37/crystal-kcov
   spectator:
     gitlab: arctic-fox/spectator
-    version: 0.10.3
+    version: 0.10.5
+  pg:
+    github: will/crystal-pg
+  dotenv:
+    github: gdotdesign/cr-dotenv
 
 crystal: 1.2.2
 
