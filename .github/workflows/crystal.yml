@@ -50,6 +50,6 @@ jobs:
       - name: Linter
         run: ./bin/ameba
       - name: Create test db
-        run: psql -U postgres -f test_database.sql
+        run: psql -h localhost -U postgres -f test_database.sql
       - name: Run tests
         run: crystal spec --order=random
