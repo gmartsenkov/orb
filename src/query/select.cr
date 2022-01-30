@@ -5,9 +5,11 @@ module Orb
     struct Select
       property columns : Array(String)
 
-      getter values = [] of Orb::TYPES
-
       def initialize(@columns)
+      end
+
+      def values
+        [] of Orb::TYPES
       end
 
       def to_sql(_position)

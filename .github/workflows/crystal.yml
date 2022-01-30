@@ -48,7 +48,7 @@ jobs:
       - name: Install shards
         run: shards check || shards install --ignore-crystal-version
       - name: Check formatting
-        run: crystal tool format
+        run: crystal tool format --check
       - name: Linter
         run: ./bin/ameba
       - name: Create test db

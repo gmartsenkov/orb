@@ -122,6 +122,11 @@ TESTS = [
     query: Orb::Query.new.multi_insert(:users, [{name: "Jon", age: 15}, {name: "Bob", age: 22}]),
     result: result("INSERT INTO users(name, age) VALUES ($1, $2), ($3, $4)", ["Jon", 15, "Bob", 22])
   ),
+  QueryTest.new(
+    query: Orb::Query.new.select(:id, :name, :age).distinct(:id, :name).from(:users),
+    result: result("SELECT DISTINCT ON(id, name) id, name, age FROM users")
+  ),
+
 ]
 
 Spectator.describe Orb::Query do

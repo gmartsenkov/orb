@@ -17,21 +17,25 @@ module Orb
       Cross
     end
 
-    alias Clauses = Select | Distinct | Join | From | GroupBy | Where | Limit | Offset | Insert | Update | MultiInsert
+    alias Clauses = Select | Distinct | Join | From | GroupBy | Where |
+                    Limit | Offset | Insert | Update | MultiInsert |
+                    SelectDistinct
+
     @clauses = Array(Clauses).new
 
     CLAUSE_PRIORITY = {
-      MultiInsert => 1,
-      Insert      => 1,
-      Update      => 1,
-      Select      => 1,
-      Distinct    => 1,
-      From        => 2,
-      Join        => 3,
-      Where       => 4,
-      GroupBy     => 5,
-      Limit       => 6,
-      Offset      => 7,
+      MultiInsert    => 1,
+      Insert         => 1,
+      Update         => 1,
+      Select         => 1,
+      Distinct       => 1,
+      SelectDistinct => 1,
+      From           => 2,
+      Join           => 3,
+      Where          => 4,
+      GroupBy        => 5,
+      Limit          => 6,
+      Offset         => 7,
     }
 
     def update(table, relation : Orb::Relation)
@@ -155,9 +159,9 @@ module Orb
     {% end %}
 
     def to_result
-      clauses = @clauses.sort_by { |c| CLAUSE_PRIORITY[c.class] }
-      values = @clauses.flat_map(&.values)
-      first_where_clause = @clauses.find { |clause| clause.is_a?(Where) }
+      clauses = CombineClause.new(@clauses).call.sort_by { |c| CLAUSE_PRIORITY[c.class] }
+      values = clauses.flat_map(&.values)
+      first_where_clause = clauses.find { |clause| clause.is_a?(Where) }
 
       query = clauses.map_with_index do |clause, i|
         position = clauses[0...i].flat_map(&.values).size + 1
