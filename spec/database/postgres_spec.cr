@@ -92,6 +92,16 @@ Spectator.describe "Postgres queries" do
         expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
       end
     end
+
+    context "when or" do
+      it "returns the correct results" do
+        results = Orb.query(Orb::Query.new.select(Orb::UserRelation).where(:id, :>=, 3).or_where(id: 1), Orb::UserRelation)
+        expect(results.size).to eq 2
+        one, two = results
+        expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
+        expect(two.to_h).to eq({"id" => 3, "name" => "Mark", "email" => "mark@snow", "created_at" => now})
+      end
+    end
   end
 
   describe "limit and offset" do
