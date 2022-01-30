@@ -11,3 +11,11 @@ CREATE TABLE USERS(
 	created_at timestamp,
 	updated_at timestamp
 );
+
+CREATE TABLE USER_AVATAR(
+	id SERIAL PRIMARY KEY,
+	user_id INT,
+	avatar_url TEXT,
+	created_at timestamp,
+	updated_at timestamp
+);

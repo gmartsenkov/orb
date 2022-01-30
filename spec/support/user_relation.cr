@@ -1,7 +1,7 @@
 require "../../src/orb"
 
 module Orb
-  class ExampleRelation < Orb::Relation
+  class UserRelation < Orb::Relation
     table "users"
 
     attribute :id, Int32?

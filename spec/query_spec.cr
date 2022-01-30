@@ -30,15 +30,15 @@ TESTS = [
   ),
   QueryTest.new(
     query: Orb::Query.new.select(:age, :name, :birthday).from("users").where(:age, :>, 15),
-    result: result("SELECT age, name, birthday FROM users WHERE age > $1", [15])
+    result: result("SELECT users.age, users.name, users.birthday FROM users WHERE age > $1", [15])
   ),
   QueryTest.new(
-    query: Orb::Query.new.select(Orb::ExampleRelation),
-    result: result("SELECT id, name, email, created_at FROM users")
+    query: Orb::Query.new.select(Orb::UserRelation),
+    result: result("SELECT users.id, users.name, users.email, users.created_at FROM users")
   ),
   QueryTest.new(
     query: Orb::Query.new.distinct(:age, :name, :birthday).from(:users).where(:age, :>, 15),
-    result: result("SELECT DISTINCT age, name, birthday FROM users WHERE age > $1", [15])
+    result: result("SELECT DISTINCT users.age, users.name, users.birthday FROM users WHERE age > $1", [15])
   ),
   QueryTest.new(
     query: Orb::Query.new.where(fragment("(age > ? OR age < ?) AND (active = ?)", [18, 99, true])).where(:name, :like, "Jon").from("users"),
@@ -90,19 +90,19 @@ TESTS = [
   ),
   QueryTest.new(
     query: Orb::Query.new.select(:id, :name).from("users").left_join(:posts, {:id, :user_id}),
-    result: result("SELECT id, name FROM users LEFT JOIN posts ON id = user_id")
+    result: result("SELECT users.id, users.name FROM users LEFT JOIN posts ON id = user_id")
   ),
   QueryTest.new(
     query: Orb::Query.new.select(:id, :name).from("users").right_join(:posts, {:id, :user_id}),
-    result: result("SELECT id, name FROM users RIGHT JOIN posts ON id = user_id")
+    result: result("SELECT users.id, users.name FROM users RIGHT JOIN posts ON id = user_id")
   ),
   QueryTest.new(
     query: Orb::Query.new.select(:id, :name).from("users").full_join(:posts, {:id, :user_id}),
-    result: result("SELECT id, name FROM users FULL JOIN posts ON id = user_id")
+    result: result("SELECT users.id, users.name FROM users FULL JOIN posts ON id = user_id")
   ),
   QueryTest.new(
     query: Orb::Query.new.select(:id, :name).from("users").cross_join(:posts, {:id, :user_id}),
-    result: result("SELECT id, name FROM users CROSS JOIN posts ON id = user_id")
+    result: result("SELECT users.id, users.name FROM users CROSS JOIN posts ON id = user_id")
   ),
   QueryTest.new(
     query: Orb::Query.new.insert(:users, {name: "Jon", email: "jon@snow", age: 15}),
@@ -117,7 +117,7 @@ TESTS = [
     result: result("UPDATE INTO users SET name = $1, age = $2 WHERE id = $3", ["bob", 15, 1])
   ),
   QueryTest.new(
-    query: Orb::Query.new.update(:users, Orb::ExampleRelation.new(1, "Jon", "jon@email", NOW)),
+    query: Orb::Query.new.update(:users, Orb::UserRelation.new(1, "Jon", "jon@email", NOW)),
     result: result("UPDATE INTO users SET id = $1, name = $2, email = $3, created_at = $4", [1, "Jon", "jon@email", NOW])
   ),
   QueryTest.new(
@@ -126,7 +126,7 @@ TESTS = [
   ),
   QueryTest.new(
     query: Orb::Query.new.select(:id, :name, :age).distinct(:id, :name).from(:users),
-    result: result("SELECT DISTINCT ON(id, name) id, name, age FROM users")
+    result: result("SELECT DISTINCT ON(users.id, users.name) users.id, users.name, users.age FROM users")
   ),
 
 ]
