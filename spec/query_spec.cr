@@ -16,6 +16,8 @@ macro result(query, values)
   Orb::Query::Result.new(query: {{query}}, values: {{values}} of Orb::TYPES)
 end
 
+include Orb::Query::Helpers
+
 NOW   = Time.utc
 TESTS = [
   QueryTest.new(
@@ -39,7 +41,7 @@ TESTS = [
     result: result("SELECT DISTINCT age, name, birthday FROM users WHERE age > $1", [15])
   ),
   QueryTest.new(
-    query: Orb::Query.new.where(Orb::Query::Fragment.generate("(age > ? OR age < ?) AND (active = ?)", [18, 99, true])).where(:name, :like, "Jon").from("users"),
+    query: Orb::Query.new.where(fragment("(age > ? OR age < ?) AND (active = ?)", [18, 99, true])).where(:name, :like, "Jon").from("users"),
     result: result("FROM users WHERE (age > $1 OR age < $2) AND (active = $3) AND name LIKE $4", [18, 99, true, "Jon"])
   ),
   QueryTest.new(
@@ -71,7 +73,7 @@ TESTS = [
     result: result("WHERE active = $1 OR active = $2 AND name = $3", [1, 2, "Jon"])
   ),
   QueryTest.new(
-    query: Orb::Query.new.where(:active, 1).or_where(Orb::Query::Fragment.generate("(age > ? OR age < ?) AND (active = ?)", [18, 99, true])),
+    query: Orb::Query.new.where(:active, 1).or_where(fragment("(age > ? OR age < ?) AND (active = ?)", [18, 99, true])),
     result: result("WHERE active = $1 OR (age > $2 OR age < $3) AND (active = $4)", [1, 18, 99, true])
   ),
   QueryTest.new(

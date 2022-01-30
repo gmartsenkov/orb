@@ -6,10 +6,6 @@ module Orb
       property query : String
       property values : Array(Orb::TYPES)
 
-      macro generate(query, values)
-        Orb::Query::Fragment.new({{query}}, {{values}} of Orb::TYPES)
-      end
-
       def initialize(@query, @values = [] of Orb::TYPES)
       end
 
