@@ -10,7 +10,7 @@ module Orb
       end
 
       def to_sql(position)
-        "UPDATE INTO #{@table} SET #{fields(position)}"
+        "UPDATE #{@table} SET #{fields(position)}"
       end
 
       def values

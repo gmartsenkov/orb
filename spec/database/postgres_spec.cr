@@ -171,4 +171,29 @@ Spectator.describe "Postgres queries" do
       end
     end
   end
+
+  context "update" do
+    let(update) do
+      Orb.exec(Orb::Query.new.update(:users, {name: "Jon 2", email: "jon2@snow"}).where(id: 1))
+    end
+
+    before_each do
+      Factory.build(Orb::UserRelation.new(id: 1, name: "Jon", email: "jon@snow", created_at: now))
+      Factory.build(Orb::UserRelation.new(id: 2, name: "Bob", email: "bob@snow", created_at: now))
+      Factory.build(Orb::UserRelation.new(id: 3, name: "Mark", email: "mark@snow", created_at: now))
+    end
+
+    it "update the correct record" do
+      expect { update }.to change {
+        Orb.query(Orb::Query.new.select(Orb::UserRelation).where(:id, 1), Orb::UserRelation).map(&.to_h)
+      }.from([{"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now}])
+        .to([{"id" => 1, "name" => "Jon 2", "email" => "jon2@snow", "created_at" => now}])
+    end
+
+    it "does not update the other records" do
+      expect { update }.not_to change {
+        Orb.query(Orb::Query.new.select(Orb::UserRelation).where(:id, :!=, 1), Orb::UserRelation).map(&.to_h)
+      }
+    end
+  end
 end
