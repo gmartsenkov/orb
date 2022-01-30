@@ -130,12 +130,31 @@ Spectator.describe "Postgres queries" do
       Factory.build(Orb::UserRelation.new(id: 2, name: "Bob", email: "bob@snow", created_at: now))
       Factory.build(Orb::UserRelation.new(id: 3, name: "Mark", email: "mark@snow", created_at: now))
 
-      Orb.exec(Orb::Query.new.insert(:user_avatar, {user_id: 1}))
+      Orb.exec(Orb::Query.new.insert(:user_avatar, {user_id: 1, avatar_url: "jon.png"}))
+      Orb.exec(Orb::Query.new.insert(:user_avatar, {user_id: 2, avatar_url: "bob.jpg"}))
     end
 
     context "inner join" do
-      it "returns the correc user" do
+      it "returns the correc users" do
         results = Orb.query(Orb::Query.new.select(Orb::UserRelation).join(:user_avatar, {"users.id", "user_id"}), Orb::UserRelation)
+        expect(results.size).to eq 2
+        one, two = results
+        expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
+        expect(two.to_h).to eq({"id" => 2, "name" => "Bob", "email" => "bob@snow", "created_at" => now})
+      end
+    end
+
+    context "left join" do
+      it "returns the correc users" do
+        results = Orb.query(
+          Orb::Query
+            .new
+            .select(Orb::UserRelation)
+            .join(:user_avatar, {"users.id", "user_id"})
+            .where("user_avatar.avatar_url", :LIKE, "%png%"),
+          Orb::UserRelation
+        )
+
         expect(results.size).to eq 1
         one = results.first
         expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
