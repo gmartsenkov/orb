@@ -51,21 +51,25 @@ module Orb
     def multi_insert(table, values)
       new_values = Array(Hash(String | Symbol, Orb::TYPES)).new
       values.to_a.each { |row| new_values << transform_hash(row) }
+      @clauses.reject!(MultiInsert)
       @clauses.push(MultiInsert.new(table, new_values))
       self
     end
 
     def multi_insert(relations : Array(Orb::Relation))
+      @clauses.reject!(MultiInsert)
       @clauses.push(MultiInsert.new(relations.first.not_nil!.class.table_name, relations.map(&.to_h)))
       self
     end
 
     def insert(table, values)
+      @clauses.reject!(Insert)
       @clauses.push(Insert.new(table, transform_hash(values)))
       self
     end
 
     def insert(relation : Orb::Relation)
+      @clauses.reject!(Insert)
       @clauses.push(Insert.new(relation.class.table_name, relation.to_h))
       self
     end
@@ -101,37 +105,44 @@ module Orb
     end
 
     def distinct(*columns)
+      @clauses.reject!(Distinct)
       @clauses.push(Distinct.new(columns.to_a.map(&.to_s)))
       self
     end
 
     def select(*columns)
+      @clauses.reject!(Select)
       @clauses.push(Select.new(columns.to_a.map(&.to_s)))
       self
     end
 
     def select(klass : Orb::Relation.class)
+      @clauses.reject!(Select)
       @clauses.push(Select.new(klass.column_names))
       @clauses.push(From.new(klass.table_name))
       self
     end
 
     def group_by(*columns)
+      @clauses.reject!(GroupBy)
       @clauses.push(GroupBy.new(columns.to_a.map(&.to_s)))
       self
     end
 
     def from(table)
+      @clauses.reject!(From)
       @clauses.push(From.new(table.to_s))
       self
     end
 
     def limit(value)
+      @clauses.reject!(Limit)
       @clauses.push(Limit.new(value))
       self
     end
 
     def offset(value)
+      @clauses.reject!(Offset)
       @clauses.push(Offset.new(value))
       self
     end
