@@ -39,11 +39,13 @@ module Orb
     }
 
     def update(table, relation : Orb::Relation)
+      @clauses.reject!(Update)
       @clauses.push(Update.new(table, relation.to_h))
       self
     end
 
     def update(table, values)
+      @clauses.reject!(Update)
       @clauses.push(Update.new(table, transform_hash(values)))
       self
     end

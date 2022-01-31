@@ -144,11 +144,19 @@ TESTS = [
     result: result("UPDATE users SET name = $1, age = $2", ["bob", 15])
   ),
   QueryTest.new(
+    query: Orb::Query.new.update(:users, {id: 1}).update(:users, {name: "bob", age: 15}),
+    result: result("UPDATE users SET name = $1, age = $2", ["bob", 15])
+  ),
+  QueryTest.new(
     query: Orb::Query.new.update(:users, {name: "bob", age: 15}).where(id: 1),
     result: result("UPDATE users SET name = $1, age = $2 WHERE id = $3", ["bob", 15, 1])
   ),
   QueryTest.new(
     query: Orb::Query.new.update(:users, Orb::UserRelation.new(1, "Jon", "jon@email", NOW)),
+    result: result("UPDATE users SET id = $1, name = $2, email = $3, created_at = $4", [1, "Jon", "jon@email", NOW])
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.update(:users, Orb::UserRelation.new(1, "Mark", "mark@email")).update(:users, Orb::UserRelation.new(1, "Jon", "jon@email", NOW)),
     result: result("UPDATE users SET id = $1, name = $2, email = $3, created_at = $4", [1, "Jon", "jon@email", NOW])
   ),
   QueryTest.new(
