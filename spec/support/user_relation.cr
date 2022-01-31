@@ -9,7 +9,7 @@ module Orb
     attribute :email, String?
     attribute :created_at, Time?
 
-    def initialize(@id, @name, @email = nil, @created_at = nil)
+    def initialize(@id = nil, @name = nil, @email = nil, @created_at = nil)
     end
   end
 end

@@ -121,14 +121,19 @@ TESTS = [
     result: result("UPDATE users SET id = $1, name = $2, email = $3, created_at = $4", [1, "Jon", "jon@email", NOW])
   ),
   QueryTest.new(
-    query: Orb::Query.new.multi_insert(:users, [{name: "Jon", age: 15}, {name: "Bob", age: 22}]),
-    result: result("INSERT INTO users(name, age) VALUES ($1, $2), ($3, $4)", ["Jon", 15, "Bob", 22])
+    query: Orb::Query.new.multi_insert(:users, [{name: "Jon", age: 15, email: "jon@snow"}, {name: "Bob", age: 22, email: "bob@snow"}]),
+    result: result("INSERT INTO users(name, age, email) VALUES ($1, $2, $3), ($4, $5, $6)", ["Jon", 15, "jon@snow", "Bob", 22, "bob@snow"])
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.multi_insert(
+      [Orb::UserRelation.new(name: "Jon", email: "jon@snow"), Orb::UserRelation.new(name: "Bob", email: "bob@snow")]),
+    result: result("INSERT INTO users(id, name, email, created_at) VALUES ($1, $2, $3, $4), ($5, $6, $7, $8)",
+      [nil, "Jon", "jon@snow", nil, nil, "Bob", "bob@snow", nil])
   ),
   QueryTest.new(
     query: Orb::Query.new.select(:id, :name, :age).distinct(:id, :name).from(:users),
     result: result("SELECT DISTINCT ON(users.id, users.name) users.id, users.name, users.age FROM users")
   ),
-
 ]
 
 Spectator.describe Orb::Query do

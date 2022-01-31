@@ -55,6 +55,11 @@ module Orb
       self
     end
 
+    def multi_insert(relations : Array(Orb::Relation))
+      @clauses.push(MultiInsert.new(relations.first.not_nil!.class.table_name, relations.map(&.to_h)))
+      self
+    end
+
     def insert(table, values)
       @clauses.push(Insert.new(table, transform_hash(values)))
       self

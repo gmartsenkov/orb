@@ -20,8 +20,10 @@ module Orb
 
       private def values_string(position)
         multi_values.map_with_index do |values, i1|
-          vals = values.map_with_index { |_, i2| "$#{i1 + i2 + position}" }.join(", ")
-          position += 1
+          vals = values.map_with_index do |_, i2|
+            "$#{(i1 * values.size) + i2 + position}"
+          end.join(", ")
+
           "(#{vals})"
         end.join(", ")
       end

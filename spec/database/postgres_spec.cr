@@ -196,4 +196,74 @@ Spectator.describe "Postgres queries" do
       }
     end
   end
+
+  context "insert" do
+    let(create) do
+      Orb.exec(Orb::Query.new.insert(:users, {id: 1, name: "Jon", email: "jon@snow", created_at: now}))
+    end
+
+    it "creates a record in the database" do
+      expect { create }.to change {
+        Orb.query(Orb::Query.new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
+      }.from([] of Hash(String | Symbol, Orb::TYPES))
+        .to([{"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now}])
+    end
+
+    context "when a relation" do
+      let(create) do
+        Orb.exec(Orb::Query.new.insert(Orb::UserRelation.new(id: 1, name: "Jon", email: "jon@snow", created_at: now)))
+      end
+
+      it "creates a record in the database" do
+        expect { create }.to change {
+          Orb.query(Orb::Query.new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
+        }.from([] of Hash(String | Symbol, Orb::TYPES))
+          .to([{"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now}])
+      end
+    end
+  end
+
+  context "multi_insert" do
+    let(create) do
+      Orb.exec(
+        Orb::Query.new.multi_insert(
+          :users,
+          [{id: 1, name: "Jon", email: "jon@snow", created_at: now}, {id: 2, name: "Mark", email: "mark@snow", created_at: now}]
+        )
+      )
+    end
+
+    it "creates a record in the database" do
+      expect { create }.to change {
+        Orb.query(Orb::Query.new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
+      }.from([] of Hash(String | Symbol, Orb::TYPES))
+        .to([
+          {"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now},
+          {"id" => 2, "name" => "Mark", "email" => "mark@snow", "created_at" => now},
+        ])
+    end
+
+    context "with relation" do
+      let(create) do
+        Orb.exec(
+          Orb::Query.new.multi_insert(
+            [
+              Orb::UserRelation.new(id: 1, name: "Jon", email: "jon@snow", created_at: now),
+              Orb::UserRelation.new(id: 2, name: "Mark", email: "mark@snow", created_at: now),
+            ]
+          )
+        )
+      end
+
+      it "creates a record in the database" do
+        expect { create }.to change {
+          Orb.query(Orb::Query.new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
+        }.from([] of Hash(String | Symbol, Orb::TYPES))
+          .to([
+            {"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now},
+            {"id" => 2, "name" => "Mark", "email" => "mark@snow", "created_at" => now},
+          ])
+      end
+    end
+  end
 end
