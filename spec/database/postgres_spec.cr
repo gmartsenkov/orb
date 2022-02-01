@@ -12,7 +12,7 @@ Spectator.describe "Postgres queries" do
     end
 
     it "returns the correct results" do
-      results = Orb::Query.new.select(:id, :name).from(:users).map_to(Orb::UserRelation).to_a
+      results = Orb::UserRelation.query.select(:id, :name).from(:users).to_a
       expect(results.size).to eq 2
 
       one, two = results
@@ -28,6 +28,22 @@ Spectator.describe "Postgres queries" do
         one, two = results
         expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
         expect(two.to_h).to eq({"id" => 2, "name" => "Mark", "email" => "mark@snow", "created_at" => now})
+      end
+    end
+
+    context "it works for another relation" do
+      before_each do
+        Orb.exec(Orb::Query.new.insert(:user_avatar, {user_id: 1, avatar_url: "jon.png"}))
+        Orb.exec(Orb::Query.new.insert(:user_avatar, {user_id: 2, avatar_url: "bob.jpg"}))
+      end
+
+      it "returns the correct avatars" do
+        results = Orb::AvatarsRelation.query.to_a
+        expect(results.size).to eq 2
+
+        one, two = results
+        expect(one.to_h.select("avatar_url", "user_id")).to eq({"avatar_url" => "jon.png", "user_id" => 1})
+        expect(two.to_h.select("avatar_url", "user_id")).to eq({"avatar_url" => "bob.jpg", "user_id" => 2})
       end
     end
   end
@@ -68,7 +84,7 @@ Spectator.describe "Postgres queries" do
     end
 
     it "returns the correct results" do
-      results = Orb.query(Orb::Query.new.select(Orb::UserRelation).where(name: "Jon"), Orb::UserRelation)
+      results = Orb::UserRelation.query.where(name: "Jon").to_a
       expect(results.size).to eq 1
       one = results.first
       expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
@@ -86,7 +102,7 @@ Spectator.describe "Postgres queries" do
 
     context "with fragment" do
       it "returns the correct results" do
-        results = Orb.query(Orb::Query.new.select(Orb::UserRelation).where(fragment("LOWER(name) = ?", ["jon"])), Orb::UserRelation)
+        results = Orb::UserRelation.query.where(fragment("LOWER(name) = ?", ["jon"])).to_a
         expect(results.size).to eq 1
         one = results.first
         expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
@@ -95,7 +111,7 @@ Spectator.describe "Postgres queries" do
 
     context "when or" do
       it "returns the correct results" do
-        results = Orb.query(Orb::Query.new.select(Orb::UserRelation).where(:id, :>=, 3).or_where(id: 1), Orb::UserRelation)
+        results = Orb::UserRelation.query.where(:id, :>=, 3).or_where(id: 1).to_a
         expect(results.size).to eq 2
         one, two = results
         expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
@@ -112,14 +128,14 @@ Spectator.describe "Postgres queries" do
     end
 
     it "limits the results" do
-      results = Orb.query(Orb::Query.new.select(Orb::UserRelation).limit(1), Orb::UserRelation)
+      results = Orb::UserRelation.query.limit(1).to_a
       expect(results.size).to eq 1
       one = results.first
       expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
     end
 
     it "applies an offset" do
-      results = Orb.query(Orb::Query.new.select(Orb::UserRelation).offset(1), Orb::UserRelation)
+      results = Orb::UserRelation.query.offset(1).to_a
       expect(results.size).to eq 2
       one, two = results
       expect(one.to_h).to eq({"id" => 2, "name" => "Bob", "email" => "bob@snow", "created_at" => now})
@@ -127,7 +143,7 @@ Spectator.describe "Postgres queries" do
     end
 
     it "limits and offsets the query" do
-      results = Orb.query(Orb::Query.new.select(Orb::UserRelation).offset(1).limit(1), Orb::UserRelation)
+      results = Orb::UserRelation.query.offset(1).limit(1).to_a
       expect(results.size).to eq 1
       one = results.first
       expect(one.to_h).to eq({"id" => 2, "name" => "Bob", "email" => "bob@snow", "created_at" => now})
@@ -146,7 +162,7 @@ Spectator.describe "Postgres queries" do
 
     context "inner join" do
       it "returns the correc users" do
-        results = Orb.query(Orb::Query.new.select(Orb::UserRelation).join(:user_avatar, {"users.id", "user_id"}), Orb::UserRelation)
+        results = Orb::UserRelation.query.join(:user_avatar, {"users.id", "user_id"}).to_a
         expect(results.size).to eq 2
         one, two = results
         expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
@@ -156,14 +172,11 @@ Spectator.describe "Postgres queries" do
 
     context "left join" do
       it "returns the correc users" do
-        results = Orb.query(
-          Orb::Query
-            .new
-            .select(Orb::UserRelation)
-            .join(:user_avatar, {"users.id", "user_id"})
-            .where("user_avatar.avatar_url", :LIKE, "%png%"),
-          Orb::UserRelation
-        )
+        results = Orb::UserRelation
+          .query
+          .join(:user_avatar, {"users.id", "user_id"})
+          .where("user_avatar.avatar_url", :LIKE, "%png%")
+          .to_a
 
         expect(results.size).to eq 1
         one = results.first

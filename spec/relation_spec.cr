@@ -23,4 +23,11 @@ Spectator.describe Orb::Relation do
         .to eq({"id" => 1, "name" => "bob", "email" => "jon@snow", "created_at" => now})
     end
   end
+
+  describe "#query" do
+    it "returns the correct query instance" do
+      expect(Orb::UserRelation.query.to_result)
+        .to eq(Orb::Query::Result.new(query: "SELECT users.id, users.name, users.email, users.created_at FROM users"))
+    end
+  end
 end

@@ -35,6 +35,10 @@ module Orb
       converted
     end
 
+    def self.query
+      Orb::Query.new.select(self).map_to(self)
+    end
+
     def self.column_names
       @@column_names
     end
