@@ -12,7 +12,7 @@ Spectator.describe "Postgres queries" do
     end
 
     it "returns the correct results" do
-      results = Orb.query(Orb::Query.new.select(:id, :name).from(:users), Orb::UserRelation)
+      results = Orb::Query.new.select(:id, :name).from(:users).map_to(Orb::UserRelation).to_a
       expect(results.size).to eq 2
 
       one, two = results

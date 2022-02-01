@@ -1,5 +1,6 @@
 require "db"
 require "./orb"
+require "db"
 require "./query/*"
 
 module Orb
@@ -22,6 +23,7 @@ module Orb
                     SelectDistinct
 
     @clauses = Array(Clauses).new
+    @map_to : Orb::Relation.class | Nil
 
     CLAUSE_PRIORITY = {
       MultiInsert    => 1,
@@ -37,6 +39,15 @@ module Orb
       Limit          => 6,
       Offset         => 7,
     }
+
+    def map_to(klass)
+      @map_to = klass
+      self
+    end
+
+    def to_a
+      Orb.query(self, @map_to.not_nil!)
+    end
 
     def update(table, relation : Orb::Relation)
       @clauses.reject!(Update)

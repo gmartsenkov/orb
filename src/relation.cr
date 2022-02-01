@@ -21,10 +21,18 @@ module Orb
     end
 
     def to_h : Hash(String | Symbol, Orb::TYPES)
-      hash = {{ @type.instance_vars.map(&.name).map { |field| [field.stringify, field.id] } }}.to_h
-      new = Hash(String | Symbol, Orb::TYPES).new
-      hash.each { |k, v| k.is_a?(String) ? new.put(k.as(String), v) { } : nil }
-      new
+      converted = {} of (String | Symbol) => Orb::TYPES
+      hash_attr = {% begin %}
+        {% h = {} of (String | Symbol) => Orb::TYPES %}
+        {% unless @type.instance_vars.empty? %}
+          {% @type.instance_vars.map(&.name).each { |field| h[field.stringify] = field.id } %}
+          {{h}}
+        {% else %}
+          converted
+        {% end %}
+      {% end %}
+      hash_attr.each { |k, v| converted[k] = v }
+      converted
     end
 
     def self.column_names
