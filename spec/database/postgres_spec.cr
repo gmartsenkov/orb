@@ -279,4 +279,39 @@ Spectator.describe "Postgres queries" do
       end
     end
   end
+
+  describe "order by" do
+    before_each do
+      Factory.build(Orb::UserRelation.new(id: 1, name: "Z", email: "jon@snow", created_at: now))
+      Factory.build(Orb::UserRelation.new(id: 2, name: "C", email: "mark@snow", created_at: now))
+      Factory.build(Orb::UserRelation.new(id: 3, name: "A", email: "bob@snow", created_at: now))
+    end
+
+    it "returns the results ordered correctly" do
+      results = Orb::UserRelation.query.order_by(:name).to_a
+      expect(results.size).to eq 3
+
+      one, two, three = results
+      expect(one.to_h).to eq({"id" => 3, "name" => "A", "email" => "bob@snow", "created_at" => now})
+      expect(two.to_h).to eq({"id" => 2, "name" => "C", "email" => "mark@snow", "created_at" => now})
+      expect(three.to_h).to eq({"id" => 1, "name" => "Z", "email" => "jon@snow", "created_at" => now})
+    end
+
+    context "with multiple" do
+      before_each do
+        Factory.build(Orb::UserRelation.new(id: 4, name: "A", email: "arya@stark", created_at: now))
+      end
+
+      it "returns the results ordered correctly" do
+        results = Orb::UserRelation.query.order_by([{"name", "asc"}, {"id", "desc"}]).to_a
+        expect(results.size).to eq 4
+
+        one, two, three, four = results
+        expect(one.to_h).to eq({"id" => 4, "name" => "A", "email" => "arya@stark", "created_at" => now})
+        expect(two.to_h).to eq({"id" => 3, "name" => "A", "email" => "bob@snow", "created_at" => now})
+        expect(three.to_h).to eq({"id" => 2, "name" => "C", "email" => "mark@snow", "created_at" => now})
+        expect(four.to_h).to eq({"id" => 1, "name" => "Z", "email" => "jon@snow", "created_at" => now})
+      end
+    end
+  end
 end

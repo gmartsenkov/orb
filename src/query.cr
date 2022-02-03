@@ -20,7 +20,7 @@ module Orb
 
     alias Clauses = Select | Distinct | Join | From | GroupBy | Where |
                     Limit | Offset | Insert | Update | MultiInsert |
-                    SelectDistinct
+                    SelectDistinct | OrderBy
 
     @clauses = Array(Clauses).new
     @map_to : Orb::Relation.class | Nil
@@ -33,11 +33,12 @@ module Orb
       Distinct       => 1,
       SelectDistinct => 1,
       From           => 2,
-      Join           => 3,
-      Where          => 4,
-      GroupBy        => 5,
-      Limit          => 6,
-      Offset         => 7,
+      OrderBy        => 3,
+      Join           => 4,
+      Where          => 5,
+      GroupBy        => 6,
+      Limit          => 7,
+      Offset         => 8,
     }
 
     def map_to(klass)
@@ -145,6 +146,26 @@ module Orb
     def from(table)
       @clauses.reject!(From)
       @clauses.push(From.new(table.to_s))
+      self
+    end
+
+    def order_by(col : String | Symbol)
+      @clauses.reject!(OrderBy)
+      @clauses.push(
+        OrderBy.new([{col.to_s, "ASC"}])
+      )
+      self
+    end
+
+    def order_by(ordering : Array(Tuple(String, String)))
+      @clauses.reject!(OrderBy)
+      @clauses.push(OrderBy.new(ordering))
+      self
+    end
+
+    def order_by(order_by : Array(Tuple(String, String)))
+      @clauses.reject!(OrderBy)
+      @clauses.push(OrderBy.new(order_by))
       self
     end
 

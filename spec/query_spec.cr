@@ -173,6 +173,14 @@ TESTS = [
     query: Orb::Query.new.select(:id, :name, :age).distinct(:id, :name).from(:users),
     result: result("SELECT DISTINCT ON(users.id, users.name) users.id, users.name, users.age FROM users")
   ),
+  QueryTest.new(
+    query: Orb::Query.new.select(:id, :name).order_by(:name).from(:users),
+    result: result("SELECT users.id, users.name FROM users ORDER BY name ASC")
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.select(:id, :name).order_by([{"name", "desc"}, {"id", "desc"}]).from(:users),
+    result: result("SELECT users.id, users.name FROM users ORDER BY name desc, id desc")
+  ),
 ]
 
 Spectator.describe Orb::Query do
