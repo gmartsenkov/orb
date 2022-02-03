@@ -50,14 +50,14 @@ module Orb
       Orb.query(self, @map_to.not_nil!)
     end
 
-    def update(table, relation : Orb::Relation)
-      @clauses.reject!(Update)
-      @clauses.push(Update.new(table, relation.to_h))
+    def update(relation : Orb::Relation)
+      @clauses.select!(Where)
+      @clauses.push(Update.new(relation.class.table_name, relation.to_h))
       self
     end
 
     def update(table, values)
-      @clauses.reject!(Update)
+      @clauses.select!(Where)
       @clauses.push(Update.new(table, transform_hash(values)))
       self
     end
@@ -65,25 +65,25 @@ module Orb
     def multi_insert(table, values)
       new_values = Array(Hash(String | Symbol, Orb::TYPES)).new
       values.to_a.each { |row| new_values << transform_hash(row) }
-      @clauses.reject!(MultiInsert)
+      @clauses = [] of Clauses
       @clauses.push(MultiInsert.new(table, new_values))
       self
     end
 
     def multi_insert(relations : Array(Orb::Relation))
-      @clauses.reject!(MultiInsert)
+      @clauses = [] of Clauses
       @clauses.push(MultiInsert.new(relations.first.not_nil!.class.table_name, relations.map(&.to_h)))
       self
     end
 
     def insert(table, values)
-      @clauses.reject!(Insert)
+      @clauses = [] of Clauses
       @clauses.push(Insert.new(table, transform_hash(values)))
       self
     end
 
     def insert(relation : Orb::Relation)
-      @clauses.reject!(Insert)
+      @clauses = [] of Clauses
       @clauses.push(Insert.new(relation.class.table_name, relation.to_h))
       self
     end

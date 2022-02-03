@@ -125,15 +125,15 @@ TESTS = [
     result: result("SELECT users.id, users.name FROM users CROSS JOIN posts ON id = user_id")
   ),
   QueryTest.new(
-    query: Orb::Query.new.insert(:users, {name: "Jon", email: "jon@snow", age: 15}),
+    query: Orb::Query.new.select(:random).insert(:users, {name: "Jon", email: "jon@snow", age: 15}),
     result: result("INSERT INTO users(name, email, age) VALUES ($1, $2, $3)", ["Jon", "jon@snow", 15])
   ),
   QueryTest.new(
-    query: Orb::Query.new.insert(:users, {id: 1}).insert(:users, {name: "Jon", email: "jon@snow", age: 15}),
+    query: Orb::Query.new.select(:random).insert(:users, {id: 1}).insert(:users, {name: "Jon", email: "jon@snow", age: 15}),
     result: result("INSERT INTO users(name, email, age) VALUES ($1, $2, $3)", ["Jon", "jon@snow", 15])
   ),
   QueryTest.new(
-    query: Orb::Query.new.insert(Orb::UserRelation.new(id: 1)).insert(Orb::UserRelation.new(name: "Jon", email: "jon@snow")),
+    query: Orb::Query.new.select(:random).insert(Orb::UserRelation.new(id: 1)).insert(Orb::UserRelation.new(name: "Jon", email: "jon@snow")),
     result: result(
       "INSERT INTO users(id, name, email, created_at) VALUES ($1, $2, $3, $4)",
       [nil, "Jon", "jon@snow", nil]
@@ -152,19 +152,23 @@ TESTS = [
     result: result("UPDATE users SET name = $1, age = $2 WHERE id = $3", ["bob", 15, 1])
   ),
   QueryTest.new(
-    query: Orb::Query.new.update(:users, Orb::UserRelation.new(1, "Jon", "jon@email", NOW)),
+    query: Orb::Query.new.update(Orb::UserRelation.new(1, "Jon", "jon@email", NOW)),
     result: result("UPDATE users SET id = $1, name = $2, email = $3, created_at = $4", [1, "Jon", "jon@email", NOW])
   ),
   QueryTest.new(
-    query: Orb::Query.new.update(:users, Orb::UserRelation.new(1, "Mark", "mark@email")).update(:users, Orb::UserRelation.new(1, "Jon", "jon@email", NOW)),
+    query: Orb::Query.new.update(Orb::UserRelation.new(1, "Jon", "jon@email", NOW)).where(id: 1),
+    result: result("UPDATE users SET id = $1, name = $2, email = $3, created_at = $4 WHERE id = $5", [1, "Jon", "jon@email", NOW, 1])
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.update(Orb::UserRelation.new(1, "Mark", "mark@email")).update(Orb::UserRelation.new(1, "Jon", "jon@email", NOW)),
     result: result("UPDATE users SET id = $1, name = $2, email = $3, created_at = $4", [1, "Jon", "jon@email", NOW])
   ),
   QueryTest.new(
-    query: Orb::Query.new.multi_insert(:users, [{id: 1}]).multi_insert(:users, [{name: "Jon", age: 15, email: "jon@snow"}, {name: "Bob", age: 22, email: "bob@snow"}]),
+    query: Orb::Query.new.select(:random).multi_insert(:users, [{id: 1}]).multi_insert(:users, [{name: "Jon", age: 15, email: "jon@snow"}, {name: "Bob", age: 22, email: "bob@snow"}]),
     result: result("INSERT INTO users(name, age, email) VALUES ($1, $2, $3), ($4, $5, $6)", ["Jon", 15, "jon@snow", "Bob", 22, "bob@snow"])
   ),
   QueryTest.new(
-    query: Orb::Query.new.multi_insert([Orb::UserRelation.new(name: "Mark")]).multi_insert(
+    query: Orb::Query.new.select(:random).multi_insert([Orb::UserRelation.new(name: "Mark")]).multi_insert(
       [Orb::UserRelation.new(name: "Jon", email: "jon@snow"), Orb::UserRelation.new(name: "Bob", email: "bob@snow")]),
     result: result("INSERT INTO users(id, name, email, created_at) VALUES ($1, $2, $3, $4), ($5, $6, $7, $8)",
       [nil, "Jon", "jon@snow", nil, nil, "Bob", "bob@snow", nil])
