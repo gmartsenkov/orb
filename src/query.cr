@@ -50,6 +50,10 @@ module Orb
       Orb.query(self, @map_to.not_nil!)
     end
 
+    def count : Int64
+      Orb.scalar(self.select(Fragment.new("COUNT(*)")))
+    end
+
     def update(relation : Orb::Relation)
       @clauses.select!(Where)
       @clauses.push(Update.new(relation.class.table_name, relation.to_h))
@@ -121,6 +125,12 @@ module Orb
     def distinct(*columns)
       @clauses.reject!(Distinct)
       @clauses.push(Distinct.new(columns.to_a.map(&.to_s)))
+      self
+    end
+
+    def select(fragment : Fragment)
+      @clauses.reject!(Select)
+      @clauses.push(Select.new(fragment: fragment))
       self
     end
 

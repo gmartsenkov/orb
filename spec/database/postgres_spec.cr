@@ -314,4 +314,22 @@ Spectator.describe "Postgres queries" do
       end
     end
   end
+
+  describe "count" do
+    before_each do
+      Factory.build(Orb::UserRelation.new(id: 1, name: "Z", email: "jon@snow", created_at: now))
+      Factory.build(Orb::UserRelation.new(id: 2, name: "C", email: "mark@snow", created_at: now))
+      Factory.build(Orb::UserRelation.new(id: 3, name: "A", email: "bob@snow", created_at: now))
+    end
+
+    it "returns the correct number of records" do
+      expect(Orb::UserRelation.query.count).to eq 3
+    end
+
+    context "it works with filters" do
+      it "returns the correct count" do
+        expect(Orb::UserRelation.query.where(fragment("name in ('A', 'C')")).count).to eq 2
+      end
+    end
+  end
 end

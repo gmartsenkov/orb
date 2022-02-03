@@ -81,6 +81,10 @@ TESTS = [
     result: result("SELECT users.id FROM users GROUP BY active, name")
   ),
   QueryTest.new(
+    query: Orb::Query.new.select(fragment("COUNT(*)")).from(:users),
+    result: result("SELECT COUNT(*) FROM users")
+  ),
+  QueryTest.new(
     query: Orb::Query.new.where(:active, 1).or_where(:active, 2),
     result: result("WHERE active = $1 OR active = $2", [1, 2])
   ),

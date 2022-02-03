@@ -22,6 +22,8 @@ module Orb
         select_clause = clauses.find { |c| c.class == Select }.as(Select)
         from_clause = clauses.find { |c| c.class == From }.as(From)
 
+        return clauses if select_clause.fragment
+
         clauses.delete(select_clause)
         clauses.push(Select.new(select_clause.columns.map { |col| qualify(from_clause.table, col) }))
       end

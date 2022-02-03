@@ -38,6 +38,11 @@ module Orb
     conn.exec(query_result.query, args: query_result.values)
   end
 
+  def scalar(query)
+    query_result = query.to_result
+    conn.scalar(query_result.query, args: query_result.values).as(Int64)
+  end
+
   def disconnect
     @@db.try(&.close)
   end
