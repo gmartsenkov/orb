@@ -22,7 +22,7 @@ module Orb
       end
 
       private def validate_direction(columns)
-        columns.each do |col, direction|
+        columns.each do |_col, direction|
           unless VALID_DIRECTIONS.includes?(direction.upcase)
             raise "Invalid ORDER BY direction - #{direction}"
           end
