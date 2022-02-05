@@ -5,7 +5,6 @@ require "dotenv"
 require "pg"
 require "clear"
 
-
 Dotenv.load ".env.test"
 DATABASE_URL = ENV.fetch("DATABASE_URL")
 
