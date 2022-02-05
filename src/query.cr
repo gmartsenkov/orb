@@ -198,19 +198,32 @@ module Orb
       end
 
       def {{pair[0].id}}(column, operator, value)
-        @clauses.push(Where.new(column.to_s, operator.to_s.upcase, value, {{pair[1].id}}))
+        if value.is_a?(Array)
+          @clauses.push(Where.new(column.to_s, operator.to_s.upcase, value.map(&.as(Orb::TYPES)), {{pair[1].id}}))
+        else
+          @clauses.push(Where.new(column.to_s, operator.to_s.upcase, value, {{pair[1].id}}))
+        end
         self
       end
 
       def {{pair[0].id}}(column, value)
-        @clauses.push(Where.new(column.to_s, "=", value, {{pair[1].id}}))
+        if value.is_a?(Array)
+          @clauses.push(Where.new(column.to_s, "IN", value.map(&.as(Orb::TYPES)), {{pair[1].id}}))
+        else
+          @clauses.push(Where.new(column.to_s, "=", value, {{pair[1].id}}))
+        end
         self
       end
 
       def {{pair[0].id}}(**conditions)
         clauses = conditions.to_a.map_with_index do |condition, i|
           operator = i.zero? ? {{pair[1].id}} : LogicalOperator::And
-          Where.new(condition[0].to_s, "=", condition[1], operator)
+          value = condition[1]
+          if value.is_a?(Array)
+            Where.new(condition[0].to_s, "IN", value.map(&.as(Orb::TYPES)), operator)
+          else
+            Where.new(condition[0].to_s, "=", value, operator)
+          end
         end
 
         @clauses.concat(clauses)

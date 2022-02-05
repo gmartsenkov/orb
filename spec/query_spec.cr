@@ -41,8 +41,20 @@ TESTS = [
     result: result("SELECT age, name, birthday WHERE age > $1", [15])
   ),
   QueryTest.new(
+    query: Orb::Query.new.select(:age, :name, :birthday).where(:id, [1,2,3]),
+    result: result("SELECT age, name, birthday WHERE id IN ($1, $2, $3)", [1,2,3])
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.select(:age, :name, :birthday).where(id: [1,2,3], age: 5),
+    result: result("SELECT age, name, birthday WHERE id IN ($1, $2, $3) AND age = $4", [1,2,3,5])
+  ),
+  QueryTest.new(
     query: Orb::Query.new.select(:age, :name, :birthday).from("users").where(:age, :>, 15),
     result: result("SELECT users.age, users.name, users.birthday FROM users WHERE age > $1", [15])
+  ),
+  QueryTest.new(
+    query: Orb::Query.new.select(:age, :name, :birthday).from("users").where(:age, "IN", [15,16,17]),
+    result: result("SELECT users.age, users.name, users.birthday FROM users WHERE age IN ($1, $2, $3)", [15,16,17])
   ),
   QueryTest.new(
     query: Orb::Query.new.select(:id).select(Orb::UserRelation),

@@ -7,7 +7,7 @@ module Orb
     struct Where
       property column : String
       property operator : String
-      property value : Orb::TYPES
+      property value : Orb::TYPES | Array(Orb::TYPES)
       property logical_operator : LogicalOperator
       property fragment : Fragment?
 
@@ -22,7 +22,14 @@ module Orb
       def to_sql(position)
         return @fragment.not_nil!.to_sql(position) if @fragment
 
-        "#{@column} #{@operator} $#{position}"
+        "#{@column} #{@operator} #{sql_values(position)}"
+      end
+
+      def values
+        value = @value
+        return value if value.is_a?(Array(Orb::TYPES))
+
+        @fragment ? @fragment.not_nil!.values : [value]
       end
 
       def logical_operator : String
@@ -36,8 +43,14 @@ module Orb
         end
       end
 
-      def values
-        @fragment ? @fragment.not_nil!.values : [value]
+      def sql_values(position)
+        value = @value
+        if value.is_a?(Array)
+          vals = (position...(value.size + position)).map { |x| "$#{x}" }.join(", ")
+          "(#{vals})"
+        else
+          "$#{position}"
+        end
       end
     end
   end
