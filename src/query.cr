@@ -50,6 +50,10 @@ module Orb
       Orb.query(self, @map_to.not_nil!)
     end
 
+    def commit
+      Orb.exec(self)
+    end
+
     def count : Int64
       Orb.scalar(self.select(Fragment.new("COUNT(*)")))
     end

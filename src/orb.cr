@@ -2,6 +2,7 @@ require "json"
 require "uuid"
 require "db"
 require "./relation"
+require "./query"
 
 module Orb
   VERSION = "0.1.0"
