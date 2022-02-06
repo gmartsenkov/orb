@@ -341,11 +341,11 @@ Spectator.describe "Postgres queries" do
     end
 
     it "deletes all of the users" do
-      expect { Orb::UserRelation.query.delete(:users).commit }.to change { Orb::UserRelation.query.count}.from(3).to(0)
+      expect { Orb::UserRelation.query.delete(:users).commit }.to change { Orb::UserRelation.query.count }.from(3).to(0)
     end
 
     it "deletes with a condition" do
-      expect { Orb::UserRelation.query.delete(:users).where(id: [1, 2]).commit }.to change { Orb::UserRelation.query.count}.from(3).to(1)
+      expect { Orb::UserRelation.query.delete(:users).where(id: [1, 2]).commit }.to change { Orb::UserRelation.query.count }.from(3).to(1)
     end
   end
 end
