@@ -201,6 +201,10 @@ TESTS = [
     query: Orb::Query.new.select(:id, :name).order_by([{"name", "desc"}, {"id", "desc"}]).from(:users),
     result: result("SELECT users.id, users.name FROM users ORDER BY name desc, id desc")
   ),
+  QueryTest.new(
+    query: Orb::Query.new.select(:id, :name).from(:users).delete(:users).where(age: 15),
+    result: result("DELETE FROM users WHERE age = $1", [15])
+  ),
 ]
 
 Spectator.describe Orb::Query do

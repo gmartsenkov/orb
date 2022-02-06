@@ -20,7 +20,7 @@ module Orb
 
     alias Clauses = Select | Distinct | Join | From | GroupBy | Where |
                     Limit | Offset | Insert | Update | MultiInsert |
-                    SelectDistinct | OrderBy
+                    SelectDistinct | OrderBy | Delete
 
     @clauses = Array(Clauses).new
     @map_to : Orb::Relation.class | Nil
@@ -28,6 +28,7 @@ module Orb
     CLAUSE_PRIORITY = {
       MultiInsert    => 1,
       Insert         => 1,
+      Delete         => 1,
       Update         => 1,
       Select         => 1,
       Distinct       => 1,
@@ -67,6 +68,12 @@ module Orb
     def update(table, values)
       @clauses.select!(Where)
       @clauses.push(Update.new(table, transform_hash(values)))
+      self
+    end
+
+    def delete(table)
+      @clauses.select!(Where)
+      @clauses.push(Delete.new(table))
       self
     end
 

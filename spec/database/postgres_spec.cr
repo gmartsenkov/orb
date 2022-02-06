@@ -332,4 +332,20 @@ Spectator.describe "Postgres queries" do
       end
     end
   end
+
+  describe "delete" do
+    before_each do
+      Factory.build(Orb::UserRelation.new(id: 1, name: "Z", email: "jon@snow", created_at: now))
+      Factory.build(Orb::UserRelation.new(id: 2, name: "C", email: "mark@snow", created_at: now))
+      Factory.build(Orb::UserRelation.new(id: 3, name: "A", email: "bob@snow", created_at: now))
+    end
+
+    it "deletes all of the users" do
+      expect { Orb::UserRelation.query.delete(:users).commit }.to change { Orb::UserRelation.query.count}.from(3).to(0)
+    end
+
+    it "deletes with a condition" do
+      expect { Orb::UserRelation.query.delete(:users).where(id: [1, 2]).commit }.to change { Orb::UserRelation.query.count}.from(3).to(1)
+    end
+  end
 end

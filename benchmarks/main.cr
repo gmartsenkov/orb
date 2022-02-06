@@ -11,6 +11,8 @@ DATABASE_URL = ENV.fetch("DATABASE_URL")
 Orb.connect(DATABASE_URL)
 Clear::SQL.init(DATABASE_URL)
 
+UserRelation.query.delete(:users).commit
+
 (0..10000).each do |x|
   UserRelation.query.insert(:users, {name: "Jon - #{x}", email: "jon@snow", age: 15}).commit
 end
@@ -19,3 +21,5 @@ Benchmark.ips(warmup: 2, calculation: 5) do |b|
   b.report("simple query Orb") { UserRelation.query.to_a }
   b.report("simple query Clear") { UserModel.query.to_a }
 end
+
+UserRelation.query.delete(:users).commit
