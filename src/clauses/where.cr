@@ -3,12 +3,12 @@ require "../orb"
 require "./fragment"
 
 module Orb
-  class Query
+  class Clauses
     struct Where
       property column : String
       property operator : String
       property value : Orb::TYPES | Array(Orb::TYPES)
-      property logical_operator : LogicalOperator
+      property logical_operator : Query::LogicalOperator
       property fragment : Fragment?
 
       def initialize(@fragment, @logical_operator = LogicalOperator::And)
@@ -34,9 +34,9 @@ module Orb
 
       def logical_operator : String
         case @logical_operator
-        when LogicalOperator::And
+        when Query::LogicalOperator::And
           "AND"
-        when LogicalOperator::Or
+        when Query::LogicalOperator::Or
           "OR"
         else
           raise "Unknown logical operator"

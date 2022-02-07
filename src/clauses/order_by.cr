@@ -1,7 +1,7 @@
 require "../orb"
 
 module Orb
-  class Query
+  class Clauses
     struct OrderBy
       VALID_DIRECTIONS = ["DESC", "ASC"]
       property columns : Array(Tuple(String, String))

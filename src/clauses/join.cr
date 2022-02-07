@@ -3,10 +3,10 @@ require "../orb"
 require "./fragment"
 
 module Orb
-  class Query
+  class Clauses
     struct Join
       property table : String | Symbol
-      property direction : Joins
+      property direction : Query::Joins
       property columns : Tuple(String | Symbol, String | Symbol)
 
       def initialize(@table, @columns, @direction)
@@ -22,15 +22,15 @@ module Orb
 
       private def direction_string
         case @direction
-        when Joins::Left
+        when Query::Joins::Left
           "LEFT JOIN"
-        when Joins::Right
+        when Query::Joins::Right
           "RIGHT JOIN"
-        when Joins::Inner
+        when Query::Joins::Inner
           "INNER JOIN"
-        when Joins::Full
+        when Query::Joins::Full
           "FULL JOIN"
-        when Joins::Cross
+        when Query::Joins::Cross
           "CROSS JOIN"
         else
           raise "unknown JOIN"

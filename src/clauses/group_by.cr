@@ -1,7 +1,7 @@
 require "../orb"
 
 module Orb
-  class Query
+  class Clauses
     struct GroupBy
       property columns : Array(String)
 

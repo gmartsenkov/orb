@@ -1,6 +1,6 @@
 require "../spec_helper"
 
-Spectator.describe Orb::Query::OrderBy do
+Spectator.describe Orb::Clauses::OrderBy do
   describe "#initialize" do
     context "with valid arguments" do
       it "can be initialized with asc" do

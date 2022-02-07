@@ -2,7 +2,7 @@ require "../orb"
 require "./fragment"
 
 module Orb
-  class Query
+  class Clauses
     struct Select
       property columns : Array(String)
       property fragment : Fragment?

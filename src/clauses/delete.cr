@@ -1,7 +1,7 @@
 require "../query"
 
 module Orb
-  class Query
+  class Clauses
     struct Delete
       property table : String | Symbol
 

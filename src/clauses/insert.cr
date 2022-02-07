@@ -1,7 +1,7 @@
 require "../query"
 
 module Orb
-  class Query
+  class Clauses
     struct Insert
       property table : String | Symbol
       property fields : Hash(String | Symbol, Orb::TYPES)

@@ -1,7 +1,7 @@
 require "../query"
 
 module Orb
-  class Query
+  class Clauses
     struct MultiInsert
       property table : String | Symbol
       property multi_values : Array(Hash(String | Symbol, Orb::TYPES))

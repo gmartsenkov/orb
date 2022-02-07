@@ -1,7 +1,7 @@
 require "../spec_helper"
 
 Spectator.describe "Postgres queries" do
-  include Orb::Query::Helpers
+  include Orb::Clauses::Helpers
 
   let(now) { Time.utc(2020, 1, 1) }
 

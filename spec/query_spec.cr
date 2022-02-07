@@ -2,21 +2,21 @@ require "./spec_helper"
 
 struct QueryTest
   property query : Orb::Query
-  property result : Orb::Query::Result
+  property result : Orb::QueryResult
 
   def initialize(@query, @result)
   end
 end
 
 macro result(query)
-  Orb::Query::Result.new(query: {{query}}, values: [] of Orb::TYPES)
+  Orb::QueryResult.new(query: {{query}}, values: [] of Orb::TYPES)
 end
 
 macro result(query, values)
-  Orb::Query::Result.new(query: {{query}}, values: {{values}} of Orb::TYPES)
+  Orb::QueryResult.new(query: {{query}}, values: {{values}} of Orb::TYPES)
 end
 
-include Orb::Query::Helpers
+include Orb::Clauses::Helpers
 
 NOW   = Time.utc
 TESTS = [

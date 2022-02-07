@@ -2,7 +2,7 @@ require "../orb"
 require "./*"
 
 module Orb
-  class Query
+  class Clauses
     struct From
       property table : String
 

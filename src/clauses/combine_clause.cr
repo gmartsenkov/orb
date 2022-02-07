@@ -1,9 +1,9 @@
 require "../**"
 
 module Orb
-  class Query
+  class Clauses
     struct CombineClause
-      @clauses : Array(Clauses)
+      @clauses : Array(Orb::Query::Clause)
 
       def initialize(@clauses)
       end

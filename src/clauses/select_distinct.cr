@@ -1,7 +1,7 @@
 require "../orb"
 
 module Orb
-  class Query
+  class Clauses
     struct SelectDistinct
       property columns : Array(String)
       property distinct_columns : Array(String)
