@@ -1,4 +1,5 @@
 require "../../src/orb"
+require "./avatars_relation"
 
 module Orb
   class UserRelation < Orb::Relation
@@ -9,7 +10,9 @@ module Orb
     attribute :email, String?
     attribute :created_at, Time?
 
-    def initialize(@id = nil, @name = nil, @email = nil, @created_at = nil)
+    has_one :avatar, Orb::AvatarsRelation, {"id", "user_id"}
+
+    def initialize(@id = nil, @name = nil, @email = nil, @created_at = nil, @avatar = nil)
     end
   end
 end

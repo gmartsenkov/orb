@@ -2,16 +2,49 @@ require "db"
 require "./orb"
 
 module Orb
+  struct Relationship
+    property name : String
+    property relation : Orb::Relation.class
+    property keys : Tuple(String, String)
+    property association : Orb::Association
+
+    def initialize(@name, @relation, @keys, @association)
+    end
+  end
+end
+
+module Orb
+  enum Association
+    OneToOne
+  end
+end
+
+module Orb
   abstract class Relation
     include DB::Serializable
 
     @@column_names = Array(String).new
+    @@relationships = Hash(String, Relationship).new
 
     macro table(name)
       include DB::Serializable
 
       def self.table_name
         {{name}}
+      end
+    end
+
+    macro has_one(name, type, keys)
+      @@relationships[{{name}}.to_s] = Relationship.new({{name.stringify}}, {{type}}, {{keys}}, Orb::Association::OneToOne)
+      property {{name.id}} : {{type}}?
+
+      def self.update_relationship_data(collection : Array(self), relation : {{type}}.class)
+        collection_ids = collection.map(&.{{keys[0].id}})
+        results = relation.query.where({{keys[1]}}, collection_ids).to_a.as(Array({{type}})).group_by(&.{{keys[1].id}})
+        collection.each do |el|
+          result = results[el.{{keys[0].id}}]?
+          el.{{name.id}} = result.first if result
+        end
       end
     end
 
@@ -31,7 +64,9 @@ module Orb
           converted
         {% end %}
       {% end %}
-      hash_attr.each { |k, v| converted[k] = v }
+      hash_attr
+        .reject { |k, _v| @@relationships.keys.includes?(k) }
+        .each { |k, v| converted[k] = v unless v.is_a?(Orb::Relation) }
       converted
     end
 
@@ -39,8 +74,19 @@ module Orb
       Orb::Query.new.select(self).map_to(self)
     end
 
+    def self.combine(collection : Array(self), relationship_key : String)
+      relationship = relationships[relationship_key]?
+      if relationship
+        update_relationship_data(collection, Orb::AvatarsRelation)
+      end
+    end
+
     def self.column_names
       @@column_names
+    end
+
+    def self.relationships
+      @@relationships
     end
   end
 end

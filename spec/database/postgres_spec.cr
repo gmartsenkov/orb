@@ -348,4 +348,42 @@ Spectator.describe "Postgres queries" do
       expect { Orb::UserRelation.query.delete(:users).where(id: [1, 2]).commit }.to change { Orb::UserRelation.query.count }.from(3).to(1)
     end
   end
+
+  describe "#combine" do
+    before_each do
+      Factory.build(Orb::UserRelation.new(id: 1, name: "Jon", email: "jon@snow", created_at: now))
+      Factory.build(Orb::UserRelation.new(id: 2, name: "Bob", email: "bob@snow", created_at: now))
+      Factory.build(Orb::UserRelation.new(id: 3, name: "Mark", email: "mark@snow", created_at: now))
+
+      Orb.exec(Orb::Query.new.insert(:user_avatar, {id: 100, user_id: 1, avatar_url: "jon.png"}))
+      Orb.exec(Orb::Query.new.insert(:user_avatar, {id: 101, user_id: 2, avatar_url: "bob.jpg"}))
+    end
+
+    it "combines the avatars" do
+      results = Orb::UserRelation.query.to_a.as(Array(Orb::UserRelation))
+      Orb::UserRelation.combine(results, "avatar")
+      expect(results.size).to eq 3
+      expect(results).to all be_a(Orb::UserRelation)
+      one, two, three = results
+      expect(one.id).to eq(1)
+      expect(one.name).to eq("Jon")
+      expect(one.avatar).to be_a(Orb::AvatarsRelation)
+      expect(one.avatar.not_nil!.id).to eq(100)
+      expect(one.avatar.not_nil!.user_id).to eq(1)
+      expect(one.avatar.not_nil!.avatar_url).to eq("jon.png")
+
+      expect(two.id).to eq(2)
+      expect(two.name).to eq("Bob")
+      expect(two.avatar).to be_a(Orb::AvatarsRelation)
+      expect(two.avatar.not_nil!.id).to eq(101)
+      expect(two.avatar.not_nil!.user_id).to eq(2)
+      expect(two.avatar.not_nil!.avatar_url).to eq("bob.jpg")
+
+      expect(three.id).to eq(3)
+      expect(three.name).to eq("Mark")
+      expect(three.email).to eq("mark@snow")
+      expect(three.created_at).to eq(now)
+      expect(three.avatar).to be nil
+    end
+  end
 end
