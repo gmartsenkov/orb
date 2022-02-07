@@ -3,7 +3,7 @@ require "db"
 require "./clauses/*"
 
 module Orb
-  class Query
+  class Query(R)
     enum LogicalOperator
       And
       Or
@@ -22,7 +22,6 @@ module Orb
                    Clauses::SelectDistinct | Clauses::OrderBy | Clauses::Delete
 
     @clauses = Array(Clause).new
-    @map_to : Orb::Relation.class | Nil
 
     CLAUSE_PRIORITY = {
       Clauses::MultiInsert    => 1,
@@ -41,13 +40,8 @@ module Orb
       Clauses::Offset         => 8,
     }
 
-    def map_to(klass)
-      @map_to = klass
-      self
-    end
-
     def to_a
-      Orb.query(self, @map_to.not_nil!)
+      Orb.query(self, R)
     end
 
     def commit

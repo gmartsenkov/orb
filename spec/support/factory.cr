@@ -4,6 +4,6 @@ module Factory
   extend self
 
   def build(user : Orb::UserRelation)
-    Orb.exec(Orb::Query.new.insert(user))
+    Orb.exec(Orb::Query(Orb::UserRelation).new.insert(user))
   end
 end

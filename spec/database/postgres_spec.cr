@@ -22,7 +22,7 @@ Spectator.describe "Postgres queries" do
 
     context "with a relation" do
       it "returns the correct results" do
-        results = Orb.query(Orb::Query.new.select(Orb::UserRelation), Orb::UserRelation)
+        results = Orb.query(Orb::Query(Orb::UserRelation).new.select(Orb::UserRelation), Orb::UserRelation)
         expect(results.size).to eq 2
 
         one, two = results
@@ -33,8 +33,8 @@ Spectator.describe "Postgres queries" do
 
     context "it works for another relation" do
       before_each do
-        Orb.exec(Orb::Query.new.insert(:user_avatar, {user_id: 1, avatar_url: "jon.png"}))
-        Orb.exec(Orb::Query.new.insert(:user_avatar, {user_id: 2, avatar_url: "bob.jpg"}))
+        Orb.exec(Orb::Query(Orb::UserRelation).new.insert(:user_avatar, {user_id: 1, avatar_url: "jon.png"}))
+        Orb.exec(Orb::Query(Orb::UserRelation).new.insert(:user_avatar, {user_id: 2, avatar_url: "bob.jpg"}))
       end
 
       it "returns the correct avatars" do
@@ -56,7 +56,7 @@ Spectator.describe "Postgres queries" do
     end
 
     it "returns the correct results" do
-      results = Orb.query(Orb::Query.new.distinct(:name).from(:users), Orb::UserRelation)
+      results = Orb.query(Orb::Query(Orb::UserRelation).new.distinct(:name).from(:users), Orb::UserRelation)
       expect(results.size).to eq 2
 
       one, two = results
@@ -66,7 +66,7 @@ Spectator.describe "Postgres queries" do
 
     context "with select and distinct" do
       it "returns the correct results" do
-        results = Orb.query(Orb::Query.new.select(Orb::UserRelation).distinct(:name), Orb::UserRelation)
+        results = Orb.query(Orb::Query(Orb::UserRelation).new.select(Orb::UserRelation).distinct(:name), Orb::UserRelation)
         expect(results.size).to eq 2
 
         one, two = results
@@ -92,7 +92,7 @@ Spectator.describe "Postgres queries" do
 
     context "with operator" do
       it "returns the correct results" do
-        results = Orb.query(Orb::Query.new.select(Orb::UserRelation).where(:id, :>=, 2), Orb::UserRelation)
+        results = Orb.query(Orb::Query(Orb::UserRelation).new.select(Orb::UserRelation).where(:id, :>=, 2), Orb::UserRelation)
         expect(results.size).to eq 2
         one, two = results
         expect(one.to_h).to eq({"id" => 2, "name" => "Bob", "email" => "bob@snow", "created_at" => now})
@@ -156,8 +156,8 @@ Spectator.describe "Postgres queries" do
       Factory.build(Orb::UserRelation.new(id: 2, name: "Bob", email: "bob@snow", created_at: now))
       Factory.build(Orb::UserRelation.new(id: 3, name: "Mark", email: "mark@snow", created_at: now))
 
-      Orb.exec(Orb::Query.new.insert(:user_avatar, {user_id: 1, avatar_url: "jon.png"}))
-      Orb.exec(Orb::Query.new.insert(:user_avatar, {user_id: 2, avatar_url: "bob.jpg"}))
+      Orb.exec(Orb::Query(Orb::UserRelation).new.insert(:user_avatar, {user_id: 1, avatar_url: "jon.png"}))
+      Orb.exec(Orb::Query(Orb::UserRelation).new.insert(:user_avatar, {user_id: 2, avatar_url: "bob.jpg"}))
     end
 
     context "inner join" do
@@ -187,7 +187,7 @@ Spectator.describe "Postgres queries" do
 
   context "update" do
     let(update) do
-      Orb.exec(Orb::Query.new.update(:users, {name: "Jon 2", email: "jon2@snow"}).where(id: 1))
+      Orb.exec(Orb::Query(Orb::UserRelation).new.update(:users, {name: "Jon 2", email: "jon2@snow"}).where(id: 1))
     end
 
     before_each do
@@ -198,38 +198,38 @@ Spectator.describe "Postgres queries" do
 
     it "update the correct record" do
       expect { update }.to change {
-        Orb.query(Orb::Query.new.select(Orb::UserRelation).where(:id, 1), Orb::UserRelation).map(&.to_h)
+        Orb.query(Orb::Query(Orb::UserRelation).new.select(Orb::UserRelation).where(:id, 1), Orb::UserRelation).map(&.to_h)
       }.from([{"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now}])
         .to([{"id" => 1, "name" => "Jon 2", "email" => "jon2@snow", "created_at" => now}])
     end
 
     it "does not update the other records" do
       expect { update }.not_to change {
-        Orb.query(Orb::Query.new.select(Orb::UserRelation).where(:id, :!=, 1), Orb::UserRelation).map(&.to_h)
+        Orb.query(Orb::Query(Orb::UserRelation).new.select(Orb::UserRelation).where(:id, :!=, 1), Orb::UserRelation).map(&.to_h)
       }
     end
   end
 
   context "insert" do
     let(create) do
-      Orb.exec(Orb::Query.new.insert(:users, {id: 1, name: "Jon", email: "jon@snow", created_at: now}))
+      Orb.exec(Orb::Query(Orb::UserRelation).new.insert(:users, {id: 1, name: "Jon", email: "jon@snow", created_at: now}))
     end
 
     it "creates a record in the database" do
       expect { create }.to change {
-        Orb.query(Orb::Query.new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
+        Orb.query(Orb::Query(Orb::UserRelation).new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
       }.from([] of Hash(String | Symbol, Orb::TYPES))
         .to([{"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now}])
     end
 
     context "when a relation" do
       let(create) do
-        Orb.exec(Orb::Query.new.insert(Orb::UserRelation.new(id: 1, name: "Jon", email: "jon@snow", created_at: now)))
+        Orb.exec(Orb::Query(Orb::UserRelation).new.insert(Orb::UserRelation.new(id: 1, name: "Jon", email: "jon@snow", created_at: now)))
       end
 
       it "creates a record in the database" do
         expect { create }.to change {
-          Orb.query(Orb::Query.new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
+          Orb.query(Orb::Query(Orb::UserRelation).new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
         }.from([] of Hash(String | Symbol, Orb::TYPES))
           .to([{"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now}])
       end
@@ -239,7 +239,7 @@ Spectator.describe "Postgres queries" do
   context "multi_insert" do
     let(create) do
       Orb.exec(
-        Orb::Query.new.multi_insert(
+        Orb::Query(Orb::UserRelation).new.multi_insert(
           :users,
           [{id: 1, name: "Jon", email: "jon@snow", created_at: now}, {id: 2, name: "Mark", email: "mark@snow", created_at: now}]
         )
@@ -248,7 +248,7 @@ Spectator.describe "Postgres queries" do
 
     it "creates a record in the database" do
       expect { create }.to change {
-        Orb.query(Orb::Query.new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
+        Orb.query(Orb::Query(Orb::UserRelation).new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
       }.from([] of Hash(String | Symbol, Orb::TYPES))
         .to([
           {"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now},
@@ -259,7 +259,7 @@ Spectator.describe "Postgres queries" do
     context "with relation" do
       let(create) do
         Orb.exec(
-          Orb::Query.new.multi_insert(
+          Orb::Query(Orb::UserRelation).new.multi_insert(
             [
               Orb::UserRelation.new(id: 1, name: "Jon", email: "jon@snow", created_at: now),
               Orb::UserRelation.new(id: 2, name: "Mark", email: "mark@snow", created_at: now),
@@ -270,7 +270,7 @@ Spectator.describe "Postgres queries" do
 
       it "creates a record in the database" do
         expect { create }.to change {
-          Orb.query(Orb::Query.new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
+          Orb.query(Orb::Query(Orb::UserRelation).new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
         }.from([] of Hash(String | Symbol, Orb::TYPES))
           .to([
             {"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now},
@@ -355,12 +355,12 @@ Spectator.describe "Postgres queries" do
       Factory.build(Orb::UserRelation.new(id: 2, name: "Bob", email: "bob@snow", created_at: now))
       Factory.build(Orb::UserRelation.new(id: 3, name: "Mark", email: "mark@snow", created_at: now))
 
-      Orb.exec(Orb::Query.new.insert(:user_avatar, {id: 100, user_id: 1, avatar_url: "jon.png"}))
-      Orb.exec(Orb::Query.new.insert(:user_avatar, {id: 101, user_id: 2, avatar_url: "bob.jpg"}))
+      Orb.exec(Orb::Query(Orb::UserRelation).new.insert(:user_avatar, {id: 100, user_id: 1, avatar_url: "jon.png"}))
+      Orb.exec(Orb::Query(Orb::UserRelation).new.insert(:user_avatar, {id: 101, user_id: 2, avatar_url: "bob.jpg"}))
     end
 
     it "combines the avatars" do
-      results = Orb::UserRelation.query.to_a.as(Array(Orb::UserRelation))
+      results = Orb::UserRelation.query.to_a
       Orb::UserRelation.combine(results, "avatar")
       expect(results.size).to eq 3
       expect(results).to all be_a(Orb::UserRelation)

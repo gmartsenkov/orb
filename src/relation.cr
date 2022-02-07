@@ -71,7 +71,7 @@ module Orb
     end
 
     def self.query
-      Orb::Query.new.select(self).map_to(self)
+      Orb::Query(self).new.select(self)
     end
 
     def self.combine(collection : Array(self), relationship_key : String)
