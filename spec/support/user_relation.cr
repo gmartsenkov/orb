@@ -12,6 +12,8 @@ module Orb
 
     has_one :avatar, Orb::AvatarsRelation, {"id", "user_id"}
 
+    register_associations
+
     def initialize(@id = nil, @name = nil, @email = nil, @created_at = nil, @avatar = nil)
     end
   end

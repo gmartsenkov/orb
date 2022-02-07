@@ -361,7 +361,7 @@ Spectator.describe "Postgres queries" do
 
     it "combines the avatars" do
       results = Orb::UserRelation.query.to_a
-      Orb::UserRelation.combine(results, "avatar")
+      Orb::UserRelation.combine(results, :avatar)
       expect(results.size).to eq 3
       expect(results).to all be_a(Orb::UserRelation)
       one, two, three = results

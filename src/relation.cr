@@ -34,13 +34,27 @@ module Orb
       end
     end
 
+    macro register_associations
+      def self.combine(collection : Array(self), association : Symbol)
+        case association.to_s
+            {% for method in @type.class.methods.map(&.name).select { |m| m.stringify.starts_with?("combine_") } %}
+            when {{method.stringify}}.delete("combine_")
+              self.{{method.id}}(collection)
+            {% end %}
+        else
+          puts "{{@type.class.methods.map(&.name)}}"
+          raise "Association '#{association}' does not exist"
+        end
+      end
+    end
+
     macro has_one(name, type, keys)
       @@relationships[{{name}}.to_s] = Relationship.new({{name.stringify}}, {{type}}, {{keys}}, Orb::Association::OneToOne)
       property {{name.id}} : {{type}}?
 
-      def self.update_relationship_data(collection : Array(self), relation : {{type}}.class)
+      def self.combine_{{name.id}}(collection : Array(self))
         collection_ids = collection.map(&.{{keys[0].id}})
-        results = relation.query.where({{keys[1]}}, collection_ids).to_a.as(Array({{type}})).group_by(&.{{keys[1].id}})
+        results = {{type}}.query.where({{keys[1]}}, collection_ids).to_a.as(Array({{type}})).group_by(&.{{keys[1].id}})
         collection.each do |el|
           result = results[el.{{keys[0].id}}]?
           el.{{name.id}} = result.first if result
@@ -72,13 +86,6 @@ module Orb
 
     def self.query
       Orb::Query(self).new.select(self)
-    end
-
-    def self.combine(collection : Array(self), relationship_key : String)
-      relationship = relationships[relationship_key]?
-      if relationship
-        update_relationship_data(collection, Orb::AvatarsRelation)
-      end
     end
 
     def self.column_names
