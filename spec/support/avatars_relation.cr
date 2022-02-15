@@ -9,6 +9,8 @@ module Orb
     attribute :avatar_url, String?
     attribute :created_at, Time?
 
+    register_associations
+
     def initialize(@id = nil, @user_id = nil, @avatar_url = nil, @created_at = nil)
     end
   end

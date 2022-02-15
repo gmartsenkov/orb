@@ -22,6 +22,7 @@ module Orb
                    Clauses::SelectDistinct | Clauses::OrderBy | Clauses::Delete
 
     @clauses = Array(Clause).new
+    @combines = Array(Symbol).new
 
     CLAUSE_PRIORITY = {
       Clauses::MultiInsert    => 1,
@@ -41,7 +42,9 @@ module Orb
     }
 
     def to_a
-      Orb.query(self, R)
+      Orb.query(self, R).tap do |results|
+        @combines.each { |assoc| R.combine(results, assoc) }
+      end
     end
 
     def commit
@@ -50,6 +53,11 @@ module Orb
 
     def count : Int64
       Orb.scalar(self.select(Clauses::Fragment.new("COUNT(*)")))
+    end
+
+    def combine(*args)
+      @combines = args.to_a
+      self
     end
 
     def update(relation : Orb::Relation)
