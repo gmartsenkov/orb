@@ -34,18 +34,18 @@ module Orb
       end
     end
 
-    macro register_associations
-      def self.combine(collection : Array(self), association : Symbol)
-        case association.to_s
-            {% for method in @type.class.methods.map(&.name).select { |m| m.stringify.starts_with?("combine_") } %}
-            when {{method.stringify}}.delete("combine_")
-              self.{{method.id}}(collection)
-            {% end %}
-        else
-          puts "{{@type.class.methods.map(&.name)}}"
-          raise "Association '#{association}' does not exist"
-        end
+    def self.combine(collection : Array(self), association : Symbol)
+      {% begin %}
+      case association.to_s
+          {% for method in @type.class.methods.map(&.name).select { |m| m.stringify.starts_with?("combine_") } %}
+          when {{method.stringify}}.delete("combine_")
+            self.{{method.id}}(collection)
+          {% end %}
+      else
+        puts "{{@type.class.methods.map(&.name)}}"
+        raise "Association '#{association}' does not exist"
       end
+      {%end%}
     end
 
     macro has_one(name, type, keys)
