@@ -412,5 +412,28 @@ Spectator.describe "Postgres queries" do
       expect(three.id).to eq(3)
       expect(three.posts.size).to eq(0)
     end
+
+    it "belong_to" do
+      results = Orb::PostRelation.query.combine(:user).to_a
+      expect(results.size).to eq 3
+      expect(results).to all be_a(Orb::PostRelation)
+      one, two, three = results
+
+      expect(one.id).to eq(1001)
+      expect(one.content).to eq("Hey there")
+      expect(one.user).to be_a(Orb::UserRelation)
+      expect(one.user.not_nil!.id).to eq(2)
+      expect(one.user.not_nil!.name).to eq("Bob")
+      expect(two.id).to eq(1002)
+      expect(two.content).to eq("What's up?")
+      expect(two.user).to be_a(Orb::UserRelation)
+      expect(two.user.not_nil!.id).to eq(2)
+      expect(two.user.not_nil!.name).to eq("Bob")
+      expect(three.id).to eq(1003)
+      expect(three.content).to eq("Not bad")
+      expect(three.user).to be_a(Orb::UserRelation)
+      expect(three.user.not_nil!.id).to eq(1)
+      expect(three.user.not_nil!.name).to eq("Jon")
+    end
   end
 end

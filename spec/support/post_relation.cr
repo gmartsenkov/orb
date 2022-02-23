@@ -9,6 +9,8 @@ module Orb
     attribute :content, String?
     attribute :created_at, Time?
 
+    belongs_to :user, Orb::UserRelation, {"user_id", "id"}
+
     def initialize(@id = nil, @user_id = nil, @content = nil, @created_at = nil)
     end
   end

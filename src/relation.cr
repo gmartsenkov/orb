@@ -17,6 +17,7 @@ module Orb
   enum Association
     OneToOne
     OneToMany
+    BelongsTo
   end
 end
 
@@ -47,6 +48,21 @@ module Orb
         raise "Association '#{association}' does not exist"
       end
       {%end%}
+    end
+
+    macro belongs_to(name, type, keys)
+      @@relationships[{{name}}.to_s] = Relationship.new({{name.stringify}}, {{type}}, {{keys}}, Orb::Association::BelongsTo)
+      @[DB::Field(ignore: true)]
+      property {{name.id}} : {{type}}?
+
+      def self.combine_{{name.id}}(collection : Array(self))
+        collection_ids = collection.map(&.{{keys[0].id}})
+        results = {{type}}.query.where({{keys[1]}}, collection_ids).to_a.as(Array({{type}})).group_by(&.{{keys[1].id}})
+        collection.each do |el|
+          result = results[el.{{keys[0].id}}]?
+          el.{{name.id}} = result.first if result
+        end
+      end
     end
 
     macro has_one(name, type, keys)
