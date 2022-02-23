@@ -16,6 +16,7 @@ end
 module Orb
   enum Association
     OneToOne
+    OneToMany
   end
 end
 
@@ -38,11 +39,11 @@ module Orb
       {% begin %}
       case association.to_s
           {% for method in @type.class.methods.map(&.name).select { |m| m.stringify.starts_with?("combine_") } %}
-          when {{method.stringify}}.delete("combine_")
+            {% method_name = method.stringify.gsub(/combine_/, "") %}
+          when {{method_name}}
             self.{{method.id}}(collection)
           {% end %}
       else
-        puts "{{@type.class.methods.map(&.name)}}"
         raise "Association '#{association}' does not exist"
       end
       {%end%}
@@ -50,6 +51,7 @@ module Orb
 
     macro has_one(name, type, keys)
       @@relationships[{{name}}.to_s] = Relationship.new({{name.stringify}}, {{type}}, {{keys}}, Orb::Association::OneToOne)
+      @[DB::Field(ignore: true)]
       property {{name.id}} : {{type}}?
 
       def self.combine_{{name.id}}(collection : Array(self))
@@ -58,6 +60,21 @@ module Orb
         collection.each do |el|
           result = results[el.{{keys[0].id}}]?
           el.{{name.id}} = result.first if result
+        end
+      end
+    end
+
+    macro has_many(name, type, keys)
+      @@relationships[{{name}}.to_s] = Relationship.new({{name.stringify}}, {{type}}, {{keys}}, Orb::Association::OneToMany)
+      @[DB::Field(ignore: true)]
+      property {{name.id}} = [] of {{type}}
+
+      def self.combine_{{name.id}}(collection : Array(self))
+        collection_ids = collection.map(&.{{keys[0].id}})
+        results = {{type}}.query.where({{keys[1]}}, collection_ids).to_a.as(Array({{type}})).group_by(&.{{keys[1].id}})
+        collection.each do |el|
+          result = results[el.{{keys[0].id}}]?
+          el.{{name.id}} = result || [] of {{type}}
         end
       end
     end
@@ -80,7 +97,7 @@ module Orb
       {% end %}
       hash_attr
         .reject { |k, _v| @@relationships.keys.includes?(k) }
-        .each { |k, v| converted[k] = v unless v.is_a?(Orb::Relation) }
+        .each { |k, v| converted[k] = v if v.is_a?(Orb::TYPES) }
       converted
     end
 

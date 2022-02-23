@@ -19,3 +19,11 @@ CREATE TABLE USER_AVATAR(
 	created_at timestamp,
 	updated_at timestamp
 );
+
+CREATE TABLE POSTS(
+	id SERIAL PRIMARY KEY,
+	user_id INT,
+	content TEXT,
+	created_at timestamp,
+	updated_at timestamp
+);

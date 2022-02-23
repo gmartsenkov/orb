@@ -355,14 +355,16 @@ Spectator.describe "Postgres queries" do
       Factory.build(Orb::UserRelation.new(id: 2, name: "Bob", email: "bob@snow", created_at: now))
       Factory.build(Orb::UserRelation.new(id: 3, name: "Mark", email: "mark@snow", created_at: now))
 
-      Orb.exec(Orb::Query(Orb::UserRelation).new.insert(:user_avatar, {id: 100, user_id: 1, avatar_url: "jon.png"}))
-      Orb.exec(Orb::Query(Orb::UserRelation).new.insert(:user_avatar, {id: 101, user_id: 2, avatar_url: "bob.jpg"}))
+      Orb.exec(Orb::Query(Nil).new.insert(:user_avatar, {id: 100, user_id: 1, avatar_url: "jon.png"}))
+      Orb.exec(Orb::Query(Nil).new.insert(:user_avatar, {id: 101, user_id: 2, avatar_url: "bob.jpg"}))
+      Orb.exec(Orb::Query(Nil).new.insert(:posts, {id: 1001, user_id: 2, content: "Hey there"}))
+      Orb.exec(Orb::Query(Nil).new.insert(:posts, {id: 1002, user_id: 2, content: "What's up?"}))
+      Orb.exec(Orb::Query(Nil).new.insert(:posts, {id: 1003, user_id: 1, content: "Not bad"}))
     end
 
-    it "combines the avatars" do
+    it "has_one" do
       results = Orb::UserRelation.query.combine(:avatar).to_a
 
-      Orb::UserRelation.combine(results, :avatar)
       expect(results.size).to eq 3
       expect(results).to all be_a(Orb::UserRelation)
       one, two, three = results
@@ -385,6 +387,30 @@ Spectator.describe "Postgres queries" do
       expect(three.email).to eq("mark@snow")
       expect(three.created_at).to eq(now)
       expect(three.avatar).to be nil
+    end
+
+    it "has_many" do
+      results = Orb::UserRelation.query.combine(:posts).to_a
+      expect(results.size).to eq 3
+      expect(results).to all be_a(Orb::UserRelation)
+      one, two, three = results
+
+      expect(one.id).to eq(1)
+      expect(one.posts.size).to eq(1)
+      expect(one.posts).to all be_a(Orb::PostRelation)
+      expect(one.posts.first.id).to eq(1003)
+      expect(one.posts.first.content).to eq("Not bad")
+
+      expect(two.id).to eq(2)
+      expect(two.posts.size).to eq(2)
+      expect(two.posts).to all be_a(Orb::PostRelation)
+      expect(two.posts[0].id).to eq(1001)
+      expect(two.posts[0].content).to eq("Hey there")
+      expect(two.posts[1].id).to eq(1002)
+      expect(two.posts[1].content).to eq("What's up?")
+
+      expect(three.id).to eq(3)
+      expect(three.posts.size).to eq(0)
     end
   end
 end
