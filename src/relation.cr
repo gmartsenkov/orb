@@ -47,7 +47,7 @@ module Orb
       else
         raise "Association '#{association}' does not exist"
       end
-      {%end%}
+      {% end %}
     end
 
     macro belongs_to(name, type, keys)
