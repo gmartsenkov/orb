@@ -1,15 +1,16 @@
 require "../../src/orb"
 
 module Orb
-  class AvatarsRelation < Orb::Relation
-    table "user_avatar"
+  class AvatarsRelation
+    include Orb::Relation
 
-    attribute :id, Int32?
-    attribute :user_id, Int32?
-    attribute :avatar_url, String?
-    attribute :created_at, Time?
-
-    def initialize(@id = nil, @user_id = nil, @avatar_url = nil, @created_at = nil)
+    schema("user_avatar") do
+      attribute :id, Int32?
+      attribute :user_id, Int32?
+      attribute :avatar_url, String?
+      attribute :created_at, Time?
     end
+
+    constructor
   end
 end

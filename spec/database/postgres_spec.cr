@@ -12,7 +12,7 @@ Spectator.describe "Postgres queries" do
     end
 
     it "returns the correct results" do
-      results = Orb::UserRelation.query.select(:id, :name).from(:users).to_a
+      results = Orb::UserRelation.query.select(:id, :name).to_a
       expect(results.size).to eq 2
 
       one, two = results
@@ -341,11 +341,11 @@ Spectator.describe "Postgres queries" do
     end
 
     it "deletes all of the users" do
-      expect { Orb::UserRelation.query.delete(:users).commit }.to change { Orb::UserRelation.query.count }.from(3).to(0)
+      expect { Orb::UserRelation.query.delete.commit }.to change { Orb::UserRelation.query.count }.from(3).to(0)
     end
 
-    it "deletes with a condition" do
-      expect { Orb::UserRelation.query.delete(:users).where(id: [1, 2]).commit }.to change { Orb::UserRelation.query.count }.from(3).to(1)
+    fit "deletes with a condition" do
+      expect { Orb::UserRelation.query.where(id: [1, 2]).delete.commit }.to change { Orb::UserRelation.query.count }.from(3).to(1)
     end
   end
 end

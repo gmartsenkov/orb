@@ -5,6 +5,10 @@ require "./query/*"
 
 module Orb
   class Query
+    enum Special
+      None
+    end
+
     enum LogicalOperator
       And
       Or
@@ -22,8 +26,12 @@ module Orb
                     Limit | Offset | Insert | Update | MultiInsert |
                     SelectDistinct | OrderBy | Delete
 
+    macro finished
+      alias IncludedRelations = {{ Orb::Relation.includers.map { |x| "#{x}.class" }.join(" | ").id }}
+      @map_to : IncludedRelations | Nil
+    end
+
     @clauses = Array(Clauses).new
-    @map_to : Orb::Relation.class | Nil
 
     CLAUSE_PRIORITY = {
       MultiInsert    => 1,
@@ -142,6 +150,12 @@ module Orb
     def select(fragment : Fragment)
       @clauses.reject!(Select)
       @clauses.push(Select.new(fragment: fragment))
+      self
+    end
+
+    def select(columns : Array(String))
+      @clauses.reject!(Select)
+      @clauses.push(Select.new(columns.to_a.map(&.to_s)))
       self
     end
 
