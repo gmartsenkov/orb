@@ -27,7 +27,12 @@ module Orb
                     SelectDistinct | OrderBy | Delete
 
     macro finished
-      alias IncludedRelations = {{ Orb::Relation.includers.map { |x| "#{x}.class" }.join(" | ").id }}
+      {% included_relations = Orb::Relation.includers.map { |x| "#{x}.class" }.join(" | ").id %}
+      {% if included_relations.empty? %}
+        alias IncludedRelations = Nil
+      {%else%}
+        alias IncludedRelations = {{ included_relations }}
+      {%end%}
       @map_to : IncludedRelations | Nil
     end
 
