@@ -30,9 +30,9 @@ module Orb
       {% included_relations = Orb::Relation.includers.map { |x| "#{x}.class" }.join(" | ").id %}
       {% if included_relations.empty? %}
         alias IncludedRelations = Nil
-      {%else%}
+      {% else %}
         alias IncludedRelations = {{ included_relations }}
-      {%end%}
+      {% end %}
       @map_to : IncludedRelations | Nil
     end
 

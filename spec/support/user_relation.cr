@@ -9,6 +9,9 @@ module Orb
       attribute :name, String?
       attribute :email, String?
       attribute :created_at, Time?
+
+      has_one :avatar, Orb::AvatarsRelation, foreign_key: :id, target_key: :user_id
+      has_one :parent, Orb::ParentRelation, foreign_key: :id, target_key: :user_id
     end
 
     constructor

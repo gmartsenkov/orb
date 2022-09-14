@@ -128,7 +128,7 @@ Spectator.describe "Postgres queries" do
     end
 
     it "limits the results" do
-      results = Orb::UserRelation.query.limit(1).to_a
+      results = Orb::UserRelation.query.order_by([{"id", "asc"}]).limit(1).to_a
       expect(results.size).to eq 1
       one = results.first
       expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
@@ -270,7 +270,7 @@ Spectator.describe "Postgres queries" do
 
       it "creates a record in the database" do
         expect { create }.to change {
-          Orb.query(Orb::Query.new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
+          Orb.query(Orb::Query.new.select(Orb::UserRelation).order_by([{"id", "asc"}]), Orb::UserRelation).map(&.to_h)
         }.from([] of Hash(String | Symbol, Orb::TYPES))
           .to([
             {"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now},
@@ -344,8 +344,28 @@ Spectator.describe "Postgres queries" do
       expect { Orb::UserRelation.query.delete.commit }.to change { Orb::UserRelation.query.count }.from(3).to(0)
     end
 
-    fit "deletes with a condition" do
+    it "deletes with a condition" do
       expect { Orb::UserRelation.query.where(id: [1, 2]).delete.commit }.to change { Orb::UserRelation.query.count }.from(3).to(1)
+    end
+  end
+
+  describe "#combine" do
+    before_each do
+      Factory.build(Orb::UserRelation.new(id: 1, name: "Jon", email: "jon@snow", created_at: now))
+    end
+
+    describe "#has_one" do
+      before_each do
+        Factory.build(Orb::AvatarsRelation.new(id: 1, user_id: 1, avatar_url: "jon.png"))
+        Factory.build(Orb::AvatarsRelation.new(id: 2, user_id: 2, avatar_url: "bob.png"))
+      end
+
+      it "combines the avatar" do
+        result = Orb::UserRelation.query.combine(avatar: Orb::AvatarsRelation.query).to_a.first
+        expect(result.avatar).to be_a Orb::AvatarsRelation
+        expect(result.avatar.not_nil!.id).to eq 1
+        expect(result.avatar.not_nil!.avatar_url).to eq "jon.png"
+      end
     end
   end
 end
