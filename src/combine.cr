@@ -7,7 +7,6 @@ module Orb
       {% else %}
         alias Queries = {{ included_relations }} | Nil
       {% end %}
-      @queries : Queries | Nil
 
       property name : Symbol
       property query : Queries

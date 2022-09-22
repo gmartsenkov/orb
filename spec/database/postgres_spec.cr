@@ -377,12 +377,39 @@ Spectator.describe "Postgres queries" do
         Factory.build(Orb::PostRelation.new(id: 3, user_id: 2, body: "three"))
       end
 
-      it "combines the avatar" do
+      it "combines the posts" do
         result = Orb::UserRelation.query.combine(posts: Orb::PostRelation.query).where(id: 2).to_a.first
         posts = result.posts.not_nil!
         expect(posts.size).to eq 2
         expect(posts.first.body).to eq "one"
         expect(posts.last.body).to eq "three"
+      end
+    end
+
+    describe "nested combines" do
+      before_each do
+        Factory.build(Orb::PostRelation.new(id: 2, user_id: 2, body: "one"))
+        Factory.build(Orb::PostRelation.new(id: 1, user_id: 1, body: "two"))
+        Factory.build(Orb::PostRelation.new(id: 3, user_id: 2, body: "three"))
+      end
+
+      fit "combines the avatar" do
+        result =
+          Orb::UserRelation
+            .query
+            .combine(posts: Orb::PostRelation.query.combine(user: Orb::UserRelation.query))
+            .where(id: 2)
+            .to_a
+            .first
+
+        posts = result.posts.not_nil!
+        expect(posts.size).to eq 2
+        expect(posts.first.body).to eq "one"
+        expect(posts.last.body).to eq "three"
+        user = posts.first.user.not_nil!
+        expect(user.id).to eq 2
+        user = posts.last.user.not_nil!
+        expect(user.id).to eq 2
       end
     end
   end
