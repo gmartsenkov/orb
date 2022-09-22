@@ -1,10 +1,13 @@
 require "db"
 require "./orb"
-require "db"
 require "./query/*"
 
 module Orb
   class Query
+    enum Special
+      None
+    end
+
     enum LogicalOperator
       And
       Or
@@ -22,8 +25,17 @@ module Orb
                     Limit | Offset | Insert | Update | MultiInsert |
                     SelectDistinct | OrderBy | Delete
 
+    macro finished
+      {% included_relations = Orb::Relation.includers.map { |x| "#{x}.class" }.join(" | ").id %}
+      {% if included_relations.empty? %}
+        alias IncludedRelations = Nil
+      {% else %}
+        alias IncludedRelations = {{ included_relations }}
+      {% end %}
+      @map_to : IncludedRelations | Nil
+    end
+
     @clauses = Array(Clauses).new
-    @map_to : Orb::Relation.class | Nil
 
     CLAUSE_PRIORITY = {
       MultiInsert    => 1,
@@ -145,6 +157,12 @@ module Orb
       self
     end
 
+    def select(columns : Array(String))
+      @clauses.reject!(Select)
+      @clauses.push(Select.new(columns.to_a.map(&.to_s)))
+      self
+    end
+
     def select(*columns)
       @clauses.reject!(Select)
       @clauses.push(Select.new(columns.to_a.map(&.to_s)))
@@ -212,7 +230,7 @@ module Orb
         if value.is_a?(Array)
           @clauses.push(Where.new(column.to_s, operator.to_s.upcase, value.map(&.as(Orb::TYPES)), {{pair[1].id}}))
         else
-          @clauses.push(Where.new(column.to_s, operator.to_s.upcase, value, {{pair[1].id}}))
+          @clauses.push(Where.new(column.to_s, operator.to_s.upcase, value.as?(Orb::TYPES), {{pair[1].id}}))
         end
         self
       end

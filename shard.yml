@@ -15,7 +15,7 @@ dependencies:
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
-    version: ~> 0.13.0
+    version: ~> 1.1.0
   crystal-kcov:
     github: vici37/crystal-kcov
   spectator:

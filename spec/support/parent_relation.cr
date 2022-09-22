@@ -1,14 +1,13 @@
 require "../../src/orb"
 
 module Orb
-  class AvatarsRelation
+  class ParentRelation
     include Orb::Relation
 
-    schema("user_avatar") do
+    schema("parents") do
       attribute :id, Int32?
+      attribute :name, String?
       attribute :user_id, Int32?
-      attribute :avatar_url, String?
-      attribute :created_at, Time?
     end
 
     constructor

@@ -12,7 +12,7 @@ Spectator.describe "Postgres queries" do
     end
 
     it "returns the correct results" do
-      results = Orb::UserRelation.query.select(:id, :name).from(:users).to_a
+      results = Orb::UserRelation.query.select(:id, :name).to_a
       expect(results.size).to eq 2
 
       one, two = results
@@ -90,6 +90,11 @@ Spectator.describe "Postgres queries" do
       expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
     end
 
+    it "works for another" do
+      results = Orb::PostRelation.query.where(id: 2).to_a
+      expect(results.size).to eq 0
+    end
+
     context "with operator" do
       it "returns the correct results" do
         results = Orb.query(Orb::Query.new.select(Orb::UserRelation).where(:id, :>=, 2), Orb::UserRelation)
@@ -128,7 +133,7 @@ Spectator.describe "Postgres queries" do
     end
 
     it "limits the results" do
-      results = Orb::UserRelation.query.limit(1).to_a
+      results = Orb::UserRelation.query.order_by([{"id", "asc"}]).limit(1).to_a
       expect(results.size).to eq 1
       one = results.first
       expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
@@ -270,7 +275,7 @@ Spectator.describe "Postgres queries" do
 
       it "creates a record in the database" do
         expect { create }.to change {
-          Orb.query(Orb::Query.new.select(Orb::UserRelation), Orb::UserRelation).map(&.to_h)
+          Orb.query(Orb::Query.new.select(Orb::UserRelation).order_by([{"id", "asc"}]), Orb::UserRelation).map(&.to_h)
         }.from([] of Hash(String | Symbol, Orb::TYPES))
           .to([
             {"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now},
@@ -341,11 +346,76 @@ Spectator.describe "Postgres queries" do
     end
 
     it "deletes all of the users" do
-      expect { Orb::UserRelation.query.delete(:users).commit }.to change { Orb::UserRelation.query.count }.from(3).to(0)
+      expect { Orb::UserRelation.query.delete.commit }.to change { Orb::UserRelation.query.count }.from(3).to(0)
     end
 
     it "deletes with a condition" do
-      expect { Orb::UserRelation.query.delete(:users).where(id: [1, 2]).commit }.to change { Orb::UserRelation.query.count }.from(3).to(1)
+      expect { Orb::UserRelation.query.where(id: [1, 2]).delete.commit }.to change { Orb::UserRelation.query.count }.from(3).to(1)
+    end
+  end
+
+  describe "#combine" do
+    before_each do
+      Factory.build(Orb::UserRelation.new(id: 1, name: "Jon", email: "jon@snow", created_at: now))
+      Factory.build(Orb::UserRelation.new(id: 2, name: "Jon", email: "jon@snow", created_at: now))
+    end
+
+    describe "#has_one" do
+      before_each do
+        Factory.build(Orb::AvatarsRelation.new(id: 2, user_id: 2, avatar_url: "bob.png"))
+        Factory.build(Orb::AvatarsRelation.new(id: 1, user_id: 1, avatar_url: "jon.png"))
+        Factory.build(Orb::AvatarsRelation.new(id: 3, user_id: 2, avatar_url: "rob.png"))
+      end
+
+      it "combines the avatar" do
+        result = Orb::UserRelation.query.combine(avatar: Orb::AvatarsRelation.query).where(id: 1).to_a.first
+        expect(result.avatar).to be_a Orb::AvatarsRelation
+        expect(result.avatar.not_nil!.id).to eq 1
+        expect(result.avatar.not_nil!.avatar_url).to eq "jon.png"
+      end
+    end
+
+    describe "#has_many" do
+      before_each do
+        Factory.build(Orb::PostRelation.new(id: 2, user_id: 2, body: "one"))
+        Factory.build(Orb::PostRelation.new(id: 1, user_id: 1, body: "two"))
+        Factory.build(Orb::PostRelation.new(id: 3, user_id: 2, body: "three"))
+      end
+
+      it "combines the posts" do
+        result = Orb::UserRelation.query.combine(posts: Orb::PostRelation.query).where(id: 2).to_a.first
+        posts = result.posts.not_nil!
+        expect(posts.size).to eq 2
+        expect(posts.first.body).to eq "one"
+        expect(posts.last.body).to eq "three"
+      end
+    end
+
+    describe "nested combines" do
+      before_each do
+        Factory.build(Orb::PostRelation.new(id: 2, user_id: 2, body: "one"))
+        Factory.build(Orb::PostRelation.new(id: 1, user_id: 1, body: "two"))
+        Factory.build(Orb::PostRelation.new(id: 3, user_id: 2, body: "three"))
+      end
+
+      it "combines the avatar" do
+        result =
+          Orb::UserRelation
+            .query
+            .combine(posts: Orb::PostRelation.query.combine(user: Orb::UserRelation.query))
+            .where(id: 2)
+            .to_a
+            .first
+
+        posts = result.posts.not_nil!
+        expect(posts.size).to eq 2
+        expect(posts.first.body).to eq "one"
+        expect(posts.last.body).to eq "three"
+        user = posts.first.user.not_nil!
+        expect(user.id).to eq 2
+        user = posts.last.user.not_nil!
+        expect(user.id).to eq 2
+      end
     end
   end
 end
