@@ -10,12 +10,12 @@ module Orb
       end
 
       def to_sql(position)
-        columns = @multi_values.flat_map(&.keys).uniq.join(", ")
+        columns = @multi_values.flat_map(&.keys).uniq!.join(", ")
         "INSERT INTO #{@table}(#{columns}) VALUES #{values_string(position)}"
       end
 
       def values
-        @multi_values.map(&.values).flatten
+        @multi_values.flat_map(&.values)
       end
 
       private def values_string(position)

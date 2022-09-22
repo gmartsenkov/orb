@@ -1,6 +1,5 @@
 require "db"
 require "./orb"
-require "db"
 require "./query/*"
 
 module Orb

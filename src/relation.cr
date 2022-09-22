@@ -6,8 +6,8 @@ module RelationQuery
   macro included
     @combines = Array(Orb::Combine).new
 
-    {% fields = parse_type("#{@type.id}::Fields".gsub(/::Query/, "")).resolve.all_subclasses.map { |klass| klass.name.id.underscore.split("::").last.id } %}
-    {% relationships = parse_type("#{@type.id}::Relationships".gsub(/::Query/, "")).resolve.all_subclasses.map { |klass| klass.name.id.underscore.split("::").last.id } %}
+    {% fields = parse_type("#{@type.id}::Fields".gsub(/::Query/, "")).resolve.all_subclasses.map(&.name.id.underscore.split("::").last.id) %}
+    {% relationships = parse_type("#{@type.id}::Relationships".gsub(/::Query/, "")).resolve.all_subclasses.map(&.name.id.underscore.split("::").last.id) %}
     {% relationship_classes = parse_type("#{@type.id}::Relationships".gsub(/::Query/, "")).resolve.all_subclasses %}
 
       {% for pair, _ in [{"where", "LogicalOperator::And"}, {"or_where", "LogicalOperator::Or"}] %}
