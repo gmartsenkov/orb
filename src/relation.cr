@@ -105,6 +105,11 @@ module RelationQuery
     self
   end
 
+  def insert(relation)
+    @query.insert(relation)
+    self
+  end
+
   def limit(number)
     @query.limit(number)
     self

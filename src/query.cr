@@ -277,7 +277,6 @@ module Orb
         end
       end.join(" ")
 
-      puts query.strip
       Result.new(query: query.strip, values: values)
     end
 
