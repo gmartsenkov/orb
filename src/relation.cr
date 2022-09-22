@@ -10,7 +10,7 @@ module RelationQuery
     {% relationships = parse_type("#{@type.id}::Relationships".gsub(/::Query/, "")).resolve.all_subclasses.map(&.name.id.underscore.split("::").last.id) %}
     {% relationship_classes = parse_type("#{@type.id}::Relationships".gsub(/::Query/, "")).resolve.all_subclasses %}
 
-      {% for pair, _ in [{"where", "LogicalOperator::And"}, {"or_where", "LogicalOperator::Or"}] %}
+      {% for pair, _ in [{"where", "Orb::Query::LogicalOperator::And"}, {"or_where", "Orb::Query::LogicalOperator::Or"}] %}
       def {{pair[0].id}}({{*fields.map do |field|
                              "#{field.id} = Orb::Query::Special::None".id
                            end}})
@@ -28,17 +28,17 @@ module RelationQuery
       end
 
       def {{pair[0].id}}(fragment : Orb::Query::Fragment)
-        @query.where(fragment)
+        @query.{{pair[0].id}}(fragment)
         self
       end
 
       def {{pair[0].id}}(column, value)
-        @query.where(column, value)
+        @query.{{pair[0].id}}(column, value)
         self
       end
 
-      def {{pair[0].id}}(column, operator, value)
-        @query.where(column, operator, value)
+      def {{pair[0].id}}(column, operator : String | Symbol, value)
+        @query.{{pair[0].id}}(column, operator, value)
         self
       end
       {% end %}

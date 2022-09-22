@@ -90,6 +90,11 @@ Spectator.describe "Postgres queries" do
       expect(one.to_h).to eq({"id" => 1, "name" => "Jon", "email" => "jon@snow", "created_at" => now})
     end
 
+    it "works for another" do
+      results = Orb::PostRelation.query.where(id: 2).to_a
+      expect(results.size).to eq 0
+    end
+
     context "with operator" do
       it "returns the correct results" do
         results = Orb.query(Orb::Query.new.select(Orb::UserRelation).where(:id, :>=, 2), Orb::UserRelation)
@@ -393,7 +398,7 @@ Spectator.describe "Postgres queries" do
         Factory.build(Orb::PostRelation.new(id: 3, user_id: 2, body: "three"))
       end
 
-      fit "combines the avatar" do
+      it "combines the avatar" do
         result =
           Orb::UserRelation
             .query
