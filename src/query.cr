@@ -230,7 +230,7 @@ module Orb
         if value.is_a?(Array)
           @clauses.push(Where.new(column.to_s, operator.to_s.upcase, value.map(&.as(Orb::TYPES)), {{pair[1].id}}))
         else
-          @clauses.push(Where.new(column.to_s, operator.to_s.upcase, value, {{pair[1].id}}))
+          @clauses.push(Where.new(column.to_s, operator.to_s.upcase, value.as?(Orb::TYPES), {{pair[1].id}}))
         end
         self
       end
@@ -277,6 +277,7 @@ module Orb
         end
       end.join(" ")
 
+      puts query.strip
       Result.new(query: query.strip, values: values)
     end
 

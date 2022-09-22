@@ -10,4 +10,8 @@ module Factory
   def build(avatar : Orb::AvatarsRelation)
     Orb.exec(Orb::Query.new.insert(avatar))
   end
+
+  def build(avatar : Orb::PostRelation)
+    Orb.exec(Orb::Query.new.insert(avatar))
+  end
 end

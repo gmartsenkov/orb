@@ -352,19 +352,37 @@ Spectator.describe "Postgres queries" do
   describe "#combine" do
     before_each do
       Factory.build(Orb::UserRelation.new(id: 1, name: "Jon", email: "jon@snow", created_at: now))
+      Factory.build(Orb::UserRelation.new(id: 2, name: "Jon", email: "jon@snow", created_at: now))
     end
 
     describe "#has_one" do
       before_each do
-        Factory.build(Orb::AvatarsRelation.new(id: 1, user_id: 1, avatar_url: "jon.png"))
         Factory.build(Orb::AvatarsRelation.new(id: 2, user_id: 2, avatar_url: "bob.png"))
+        Factory.build(Orb::AvatarsRelation.new(id: 1, user_id: 1, avatar_url: "jon.png"))
+        Factory.build(Orb::AvatarsRelation.new(id: 3, user_id: 2, avatar_url: "rob.png"))
       end
 
       it "combines the avatar" do
-        result = Orb::UserRelation.query.combine(avatar: Orb::AvatarsRelation.query).to_a.first
+        result = Orb::UserRelation.query.combine(avatar: Orb::AvatarsRelation.query).where(id: 1).to_a.first
         expect(result.avatar).to be_a Orb::AvatarsRelation
         expect(result.avatar.not_nil!.id).to eq 1
         expect(result.avatar.not_nil!.avatar_url).to eq "jon.png"
+      end
+    end
+
+    describe "#has_many" do
+      before_each do
+        Factory.build(Orb::PostRelation.new(id: 2, user_id: 2, body: "one"))
+        Factory.build(Orb::PostRelation.new(id: 1, user_id: 1, body: "two"))
+        Factory.build(Orb::PostRelation.new(id: 3, user_id: 2, body: "three"))
+      end
+
+      it "combines the avatar" do
+        result = Orb::UserRelation.query.combine(posts: Orb::PostRelation.query).where(id: 2).to_a.first
+        posts = result.posts.not_nil!
+        expect(posts.size).to eq 2
+        expect(posts.first.body).to eq "one"
+        expect(posts.last.body).to eq "three"
       end
     end
   end

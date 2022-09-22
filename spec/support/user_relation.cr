@@ -12,6 +12,7 @@ module Orb
 
       has_one :avatar, Orb::AvatarsRelation, foreign_key: :id, target_key: :user_id
       has_one :parent, Orb::ParentRelation, foreign_key: :id, target_key: :user_id
+      has_many :posts, Orb::PostRelation, foreign_key: :id, target_key: :user_id
     end
 
     constructor

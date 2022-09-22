@@ -25,6 +25,7 @@ module RelationQuery
           end
         {% end %}
         self
+        {%debug%}
       end
 
       def {{pair[0].id}}(fragment : Orb::Query::Fragment)
@@ -49,7 +50,6 @@ module RelationQuery
 
         {% for relationship in parse_type("#{@type.id}::Relationships".gsub(/::Query/, "")).resolve.all_subclasses %}
           {% field = relationship.name.id.underscore.split("::").last.id %}
-          {% field = relationship.name.id.underscore.split("::").last.id %}
           unless {{field.id}}.is_a?(Orb::Query::Special::None)
             @combines << Orb::Combine.new(name: {{field.id.symbolize}}, query: {{field.id}}.as?(Orb::Combine::Queries))
           end
@@ -71,19 +71,25 @@ module RelationQuery
             {% relation_class = parse_type("#{relationship.id}::RELATION").resolve.id %}
             {% relationship_name = parse_type("#{relationship.id}::NAME").resolve.id %}
             {% query_class = parse_type("#{relationship.id}::QUERY_CLASS").resolve.id %}
+            {% relation_type = parse_type("#{relationship.id}::TYPE").resolve.id %}
 
             if {{relationship_name.symbolize}} == combine.name
               related = combine
                         .query
                         .as({{query_class}})
-                        .where({{target_key.id}}: results.map(&.{{foreign_key}}))
+                        .where({{target_key.symbolize}}, "IN", results.map(&.{{foreign_key}}))
                         .to_a
                         .group_by { |x| x.as({{ relation_class }} ).{{target_key}} }
 
               related.each do |id, values|
                 found = results.find { |x| x.{{foreign_key}} == id }
                 next unless found
-                found.{{relationship_name}} = values.first.as({{relation_class}})
+                {% if relation_type.symbolize == :has_one %}
+                  found.{{relationship_name}} = values.first.as({{relation_class}})
+                {% end %}
+                {% if relation_type.symbolize == :has_many %}
+                  found.{{relationship_name}} = values.as(Array({{relation_class}}))
+                {% end %}
               end
             end
           {% end %}
@@ -208,6 +214,7 @@ module Orb
         RELATION = {{ relation.id }}
         NAME = {{ name.id }}
         QUERY_CLASS =  {{ parse_type("#{relation.id}::Query").resolve.id }}
+        TYPE = :has_one
 
         def name : Symbol
           {{ name.id.symbolize }}
@@ -226,7 +233,38 @@ module Orb
         end
       end
 
+      @[DB::Field(ignore: true)]
       property {{name.id}} : {{relation}} | Nil
+    end
+
+    macro has_many(name, relation, **opts)
+      class Relationships::{{ name.camelcase.id }} < Relationships
+        FOREIGN_KEY = {{ opts[:foreign_key] }}
+        TARGET_KEY = {{ opts[:target_key] }}
+        RELATION = {{ relation.id }}
+        NAME = {{ name.id }}
+        QUERY_CLASS =  {{ parse_type("#{relation.id}::Query").resolve.id }}
+        TYPE = :has_many
+
+        def name : Symbol
+          {{ name.id.symbolize }}
+        end
+
+        def direction : Symbol
+          :has_many
+        end
+
+        def foreign_key : Symbol
+          {{ opts[:foreign_key] }}
+        end
+
+        def target_key : Symbol
+          {{ opts[:target_key] }}
+        end
+      end
+
+      @[DB::Field(ignore: true)]
+      property {{name.id}} : Array({{relation}}) | Nil
     end
 
     def to_h : Hash(String | Symbol, Orb::TYPES)
